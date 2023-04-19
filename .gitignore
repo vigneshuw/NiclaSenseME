@@ -1,0 +1,9 @@
+# Apple filesystem
+.DS_Store
+
+# editors
+*.swp
+*~
+
+# build
+/build*/
