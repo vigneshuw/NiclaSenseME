@@ -130,7 +130,6 @@ void RGBled::ledBlink(RGBColors color, uint32_t duration) {
 }
 
 
-
 /*
 Private Methods
 */
@@ -177,13 +176,18 @@ void RGBled::getChipID(uint8_t* buf, uint32_t num_bytes) {
 }
 
 
-// I2C Operations
 /*
-Function:   writeByte
----------------------
-Arguments:
-            subAddress      ->      Address to where the data needs to be written
-            data            ->      The 8-bit data that is to written
+I2C Operations
+*/
+/*
+@brief Writes a byte over I2C.
+
+@note No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
+
+@param subAddress      ->      Address to send over the I2C line to identify the register
+@param data            ->      The 8-bit data that is to be written
+
+@return None
 */
 void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
 
@@ -200,6 +204,16 @@ void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
 }
 
 
+/*
+@brief Reads a byte over I2C
+@note  No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
+
+@param subAddress      ->      Address to send over the I2C line to identify the register
+@param read_buf        ->      Buffer where the read data is to be placed
+@param num_bytes       ->      Number of bytes to read from the device one after the other
+
+@returns None
+*/
 void RGBled::readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes) {
     // Check for device readiness
     if(!device_is_ready(RGBled_i2c0.bus)) {

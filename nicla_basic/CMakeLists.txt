@@ -7,6 +7,8 @@ project(nicla_basic)
 
 # includes
 include_directories(library/RGB)
+include_directories(library/PMIC)
 
 target_sources(app PRIVATE src/main.cpp)
 target_sources(app PRIVATE library/RGB/RGBled.cpp)
+target_sources(app PRIVATE library/PMIC/BQ25120A.cpp)

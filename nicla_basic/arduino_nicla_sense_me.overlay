@@ -20,4 +20,22 @@
         label = "RGBled";
     };
 
+    bq25120a: bq25120a@6a{
+        compatible = "i2c-device";
+        reg = < 0x6A >;
+        label = "BQ25120A";
+    };
+
 };
+
+/ {
+    gpio_keys {
+        pmiccd: pmiccd{
+            label = "PMICCD";
+            gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
+            status = "okay";
+        };
+    };
+};
+
+
