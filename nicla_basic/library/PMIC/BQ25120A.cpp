@@ -82,8 +82,18 @@ bool BQ25120A::disableLDO() {
 
 uint8_t BQ25120A::getStatus(){
 
-    uint8_t ldo_reg = readLDOreg();
-    return ldo_reg;
+    uint8_t status_reg = {0};
+    readByte(BQ25120A_STATUS, &status_reg, 1);
+    return status_reg;
+
+}
+
+
+bool BQ25120A::enterShipMode() {
+
+    uint8_t status_reg = getStatus();
+    status_reg |= 0x20;
+    writeByte(BQ25120A_STATUS, status_reg);
 
 }
 
