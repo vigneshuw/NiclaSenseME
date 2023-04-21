@@ -5,28 +5,24 @@
  */
 
 #include <zephyr/kernel.h>
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/gap.h>
 
-#include "RGBled.hpp"
-#include "BQ25120A.hpp"
+#include "NiclaSystem.hpp"
 
-RGBled rgbled;
-BQ25120A pmic;
+
 float battery_percentage = 0.0;
 
 int main(void)
 {
 	printk("Hello World! %s\n", CONFIG_BOARD);
-	rgbled.begin();
-	pmic.enableCharge(100);
+	nicla::leds.begin();
+	nicla::pmic.enableCharge(100);
 	while (1) {
-		rgbled.setColor(red);
+		nicla::leds.setColor(red);
 		k_msleep(5000);
-		rgbled.setColor(off);
+		nicla::leds.setColor(off);
 		k_msleep(2000);
 
-		battery_percentage = pmic.getBatteryVoltage();
+		battery_percentage = nicla::pmic.getBatteryVoltage();
 		printk("Battery Percentage - %f\n", battery_percentage);
 
 	}

@@ -89,7 +89,7 @@ uint8_t BQ25120A::getStatus(){
 }
 
 
-bool BQ25120A::enterShipMode() {
+void BQ25120A::enterShipMode() {
 
     uint8_t status_reg = getStatus();
     status_reg |= 0x20;

@@ -24,7 +24,7 @@ class BQ25120A {
         BQ25120A() {};
 
         static uint8_t getStatus();
-        static bool enterShipMode();
+        static void enterShipMode();
         static bool enable3V3LDO();
         static bool enable1V8LDO();
         static bool disableLDO();
