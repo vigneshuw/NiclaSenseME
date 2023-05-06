@@ -11,15 +11,20 @@
 // For more help, browse the DeviceTree documentation at https://docs.zephyrproject.org/latest/guides/dts/index.html
 // You can also visit the nRF DeviceTree extension documentation at https://nrfconnect.github.io/vscode-nrf-connect/devicetree/nrfdevicetree.html
 
-// RGB Led on I2C
+// Remove the default storage partition
+/delete-node/ &storage_partition;
+
+// I2C Configuration
 &i2c0 {
     
+    // RGB LED
     rgbled: rgbled@53{
         compatible = "i2c-device";
         reg = < 0x53 >;
         label = "RGBled";
     };
 
+    // PMIC
     bq25120a: bq25120a@6a{
         compatible = "i2c-device";
         reg = < 0x6A >;
@@ -28,6 +33,7 @@
 
 };
 
+// PMIC Control
 / {
     gpio_keys {
         pmiccd: pmiccd{
@@ -36,6 +42,40 @@
             status = "okay";
         };
     };
+};
+
+/*
+littlefs
+*/
+// Mounting Info
+/ {
+	fstab {
+		compatible = "zephyr,fstab";
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs1";
+			partition = <&logging_partition>;
+            automount;
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>;
+			lookahead-size = <32>;
+			block-cycles = <512>;
+		};
+	};
+};
+
+// Specify external flash
+/ {
+	chosen {
+		nordic,pm-ext-flash = &mx25r1635f;
+	};
+};
+
+// Partition for external flash
+&logging_partition {
+    label = "storage";
+    reg = < 0x00000000 0x00200000 >;
 };
 
 
