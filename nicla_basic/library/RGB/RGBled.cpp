@@ -96,7 +96,7 @@ void RGBled::setColorBlue(uint8_t blue) {
 void RGBled::setColorRed(uint8_t red) {
 
     // Red LED
-    writeByte(IS31FL3194_OUT1, red >> scale_factor);
+    writeByte(IS31FL3194_OUT3, red >> scale_factor);
     writeByte(IS31FL3194_COLOR_UPDATE, 0xC5);
 
 }
@@ -105,7 +105,7 @@ void RGBled::setColorRed(uint8_t red) {
 void RGBled::setColorGreen(uint8_t green) {
 
     // Green LED
-    writeByte(IS31FL3194_OUT1, green >> scale_factor);
+    writeByte(IS31FL3194_OUT2, green >> scale_factor);
     writeByte(IS31FL3194_COLOR_UPDATE, 0xC5);
 
 }
