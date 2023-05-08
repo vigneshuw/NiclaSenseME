@@ -36,7 +36,8 @@ bool automounted = false;
 char fname1[MAX_PATH_LENGTH];
 char fname2[MAX_PATH_LENGTH];
 uint32_t boot_count;
-
+uint8_t crc = 0;
+uint16_t counter = 0;
 
 /*
 Bluetooth Connection
@@ -76,11 +77,22 @@ static bool app_firmware_upload_cb(bool update_state) {
 
     return false;
 }
+/** @brief Load the firmware data*/
+static bool app_firmware_data_cb(const uint8_t *val, uint16_t len) {
+    // printk("The data length was %u\n", val);
+    for(int i = 0; i < len; i++) {
+        crc = crc  ^ val[i];
+        counter++;
+    }
+    // printk("The CRC %u\n", crc);
+    return 0;
+}
 
 // Callbacks to the struct
 static struct ns_cb app_callbacks = {
     .boot_cnt_cb = app_boot_cnt_cb,
     .firmware_update_cb = app_firmware_upload_cb,
+    .firmware_data_cb = app_firmware_data_cb,
 };
 
 // On Connection callback
@@ -90,7 +102,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
         return;
     }
     LOG_INF("Connection Established");
-
+    printk("The Current Counter is %u CRC is %u\n", counter, crc);
     // Set the LEDs to Green 
     nicla::leds.setColor(green);
 
@@ -99,7 +111,7 @@ static void on_connected(struct bt_conn *conn, uint8_t err) {
 // On disconnect callback
 void on_disconnected(struct bt_conn *conn, uint8_t reason) {
     LOG_INF("Disconnected. Reason %d", reason);
-
+    printk("The Final Counter is %u CRC is %u\n", counter, crc);
     nicla::leds.setColor(red);
 }
 
@@ -188,8 +200,8 @@ int main(void) {
 
     while (1) {
         // Read the boot count and print
-        nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
-        LOG_PRINTK("Boot count is %u\n", boot_count);
+        // nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
+        // LOG_PRINTK("Boot count is %u\n", boot_count);
         k_msleep(5000);
     }
 

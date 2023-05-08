@@ -57,6 +57,30 @@ static ssize_t bhi_firmware_upload(struct bt_conn *conn,
 
 }
 
+static ssize_t bhi_firmware_data(struct bt_conn *conn, 
+                    const struct bt_gatt_attr *attr,
+                    const void *buf,
+                    uint16_t len, uint16_t offset, uint8_t flags) {
+    
+    LOG_DBG("Attribute write, handle: %u, conn: %p", attr->handle, (void *)conn);
+
+    if (offset != 0) {
+        LOG_DBG("Write FW data: Incorrect data offset\n");
+        return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
+    }
+
+    if (bt_ns_callbacks.firmware_data_cb) {
+
+        // Read the received value
+        uint8_t *val = (uint8_t *)buf;
+        bt_ns_callbacks.firmware_data_cb(val, len);
+
+    }
+
+    return len;
+
+}
+
 
 /** @brief Callback for reading the boot count in GATT Characteristics*/
 static ssize_t read_boot_count(struct bt_conn *conn,
@@ -87,6 +111,7 @@ int nicla_service_init(struct ns_cb *callbacks) {
     if(callbacks) {
         bt_ns_callbacks.boot_cnt_cb = callbacks->boot_cnt_cb;
         bt_ns_callbacks.firmware_update_cb = callbacks->firmware_update_cb;
+        bt_ns_callbacks.firmware_data_cb = callbacks->firmware_data_cb;
     }
 
     return 0;
@@ -108,6 +133,10 @@ BT_GATT_PRIMARY_SERVICE(BT_UUID_NS),
     // Control BHI260AP Firmware Update
     BT_GATT_CHARACTERISTIC(BT_UUID_NS_BHI_FU, 
                     BT_GATT_CHRC_WRITE, 
-                    BT_GATT_PERM_WRITE, NULL, bhi_firmware_upload, NULL)
+                    BT_GATT_PERM_WRITE, NULL, bhi_firmware_upload, NULL),
+    // Firware data upload
+    BT_GATT_CHARACTERISTIC(BT_UUID_NS_BHI_FW_DAT, 
+                    BT_GATT_CHRC_WRITE, 
+                    BT_GATT_PERM_WRITE, NULL, bhi_firmware_data, NULL)
 );
 
