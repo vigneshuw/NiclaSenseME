@@ -2,23 +2,18 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/fs/fs.h>
 
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/gap.h>
-#include <zephyr/bluetooth/conn.h>
-#include <zephyr/bluetooth/uuid.h>
-
 #include <stdio.h>
 #include <string.h>
 
 #include "NiclaSystem.hpp"
-#include "BLE/NiclaService.hpp"
+#include "BHIFW/fw.h"
 
 
-#define DEVICE_NAME                 CONFIG_BT_DEVICE_NAME
-#define DEVICE_NAME_LEN             (sizeof(DEVICE_NAME) - 1)
-
-#define TEST_FILE_SIZE              547
+// The littlefs file system
 #define PARTITION_NODE              DT_NODELABEL(lfs1)
+// BHI firmware
+#define fw_bin                      BHI260AP_NiclaSenseME_flash_fw
+#define fw_bin_len                  BHI260AP_NiclaSenseME_flash_fw_len
 
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
@@ -33,106 +28,33 @@ struct fs_mount_t *mp = &FS_FSTAB_ENTRY(PARTITION_NODE);
 bool automounted = false;
 
 // File names to read
-char fname1[MAX_PATH_LENGTH];
-char fname2[MAX_PATH_LENGTH];
+char boot_count_fname[MAX_PATH_LENGTH];
+char bhi_firmware_fname[MAX_PATH_LENGTH];
+char crc_firmware_fname[MAX_PATH_LENGTH];
+// Variables for writing
 uint32_t boot_count;
-uint8_t crc = 0;
-uint16_t counter = 0;
+uint8_t original_crc = 0;
+uint8_t flash_crc = 0;
 
-/*
-Bluetooth Connection
-*/
-// Advertising parameters
-static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM((BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_IDENTITY), 
-                800, 
-                801, 
-                NULL);
-                
-// Advertising and Scanning data
-// Advertising data
-static const struct bt_data ad[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
-};
-// Scanning response data
-static const struct bt_data sd[] = {
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123))
-};
-
-// Callbacks
-/** @brief Read boot count from SPI flash*/
-static uint32_t app_boot_cnt_cb(void) {
-
-    return boot_count;
-}
-/** @brief  Upload the firmware to the BHI260AP*/
-static bool app_firmware_upload_cb(bool update_state) {
-    if(update_state) {
-        printk("Firmware is being uploaded......\n");
-        k_msleep(10000);
-        printk("Upload complete!\n");
-    } else {
-        printk("Firware will not be uploaded...\n");
-    }
-
-    return false;
-}
-/** @brief Load the firmware data*/
-static bool app_firmware_data_cb(const uint8_t *val, uint16_t len) {
-    // printk("The data length was %u\n", val);
-    for(int i = 0; i < len; i++) {
-        crc = crc  ^ val[i];
-        counter++;
-    }
-    // printk("The CRC %u\n", crc);
-    return 0;
-}
-
-// Callbacks to the struct
-static struct ns_cb app_callbacks = {
-    .boot_cnt_cb = app_boot_cnt_cb,
-    .firmware_update_cb = app_firmware_upload_cb,
-    .firmware_data_cb = app_firmware_data_cb,
-};
-
-// On Connection callback
-static void on_connected(struct bt_conn *conn, uint8_t err) {
-    if(err) {
-        LOG_ERR("Connection error %d", err);
-        return;
-    }
-    LOG_INF("Connection Established");
-    printk("The Current Counter is %u CRC is %u\n", counter, crc);
-    // Set the LEDs to Green 
-    nicla::leds.setColor(green);
-
-}
-
-// On disconnect callback
-void on_disconnected(struct bt_conn *conn, uint8_t reason) {
-    LOG_INF("Disconnected. Reason %d", reason);
-    printk("The Final Counter is %u CRC is %u\n", counter, crc);
-    nicla::leds.setColor(red);
-}
-
-// Callbacks to the struct
-struct bt_conn_cb connection_callbacks = {
-    .connected      = on_connected,
-    .disconnected   = on_disconnected,
-};
-
+// Reading the written firmware
+// Split and read
+const uint8_t divider = 200;
+uint8_t buf[divider];
+uint32_t mod_length = fw_bin_len / divider;
+uint32_t remain_length = fw_bin_len % divider;
 
 int main(void) {
 
+    // Enable LEDs and charging
     nicla::leds.begin();
     nicla::pmic.enableCharge(100);
 
     struct fs_statvfs sbuf;
     int rc;
 
-    LOG_INF("Testing the flash read and write and BLE\n");
+    LOG_INF("Uploading the BHI fimware to SPI Flash\n");
 
-
+    // Mouting the littlefs filesystem
     if(FSTAB_ENTRY_DT_MOUNT_FLAGS(PARTITION_NODE) & FS_MOUNT_FLAG_AUTOMOUNT) {
         automounted = true;
     } else {
@@ -143,66 +65,87 @@ int main(void) {
         return 0;
     }
 
-    snprintf(fname1, sizeof(fname1), "%s/boot_count", mp->mnt_point);
-    snprintf(fname2, sizeof(fname2), "%s/pattern.bin", mp->mnt_point);
-
+    // Filenames to write
+    snprintf(boot_count_fname, sizeof(boot_count_fname), "%s/boot_count.bin", mp->mnt_point);
+    snprintf(bhi_firmware_fname, sizeof(bhi_firmware_fname), "%s/bhi_update.bin", mp->mnt_point);
+    snprintf(crc_firmware_fname, sizeof(crc_firmware_fname), "%s/bhi_update_crc.bin", mp->mnt_point);
+    // Status of the mount point
     rc = fs_statvfs(mp->mnt_point, &sbuf);
     if (rc < 0) {
         LOG_PRINTK("FAIL: statvfs: %d\n", rc);
         goto out;
     }
-
+    // Print the flash properties
     LOG_PRINTK("%s: bsize = %lu ; frsize = %lu ;"
 		   " blocks = %lu ; bfree = %lu\n",
 		   mp->mnt_point,
 		   sbuf.f_bsize, sbuf.f_frsize,
 		   sbuf.f_blocks, sbuf.f_bfree);
 
+    // List the available files in the flash
 	rc = nicla::spiFLash.lsdir(mp->mnt_point);
 	if (rc < 0) {
 		LOG_PRINTK("FAIL: lsdir %s: %d\n", mp->mnt_point, rc);
 		goto out;
 	}
-
-    rc = nicla::spiFLash.littlefs_increase_infile_value(fname1);
+    
+    // Increment boot count and write to flash
+    rc = nicla::spiFLash.littlefs_increase_infile_value(boot_count_fname);
 	if (rc) {
 		goto out;
 	}
 
     /*
-    BLE
+    Firmware write to flash
     */
-    // Registering Callbacks
-    int err;
-    bt_conn_cb_register(&connection_callbacks);
-    err = nicla_service_init(&app_callbacks);
-    if(err) {
-        LOG_ERR("Failed to initialize the read/write calbacks\n");
-        return 1;
+    // The current CRC value
+    original_crc = 0;
+    for (unsigned int i = 0; i < fw_bin_len; i++) {
+        original_crc = original_crc ^ fw_bin[i];
     }
-    
-    // Enable BLE
-    err = bt_enable(NULL);
-    if (err) {
-		LOG_ERR("Bluetooth init failed (err %d)", err);
-		return 1;
-	}
-	LOG_INF("Bluetooth initialized");
+    printk("The Original CRC is %u\n", original_crc);
+    // Write the firmware
+    rc = nicla::spiFLash.littlefs_binary_write(bhi_firmware_fname, fw_bin, fw_bin_len);
+    if (rc) {
+        goto out;
+    }
+    printk("Firmware write was successful!!\n");
 
-    // Start Advertising
-	err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad),
-			      sd, ARRAY_SIZE(sd));
-	if (err) {
-		LOG_ERR("Advertising failed to start (err %d)", err);
-		return 1;
-	}
-	LOG_INF("Advertising successfully started"); 
+    // Read the written firmware to compare CRC
+    flash_crc = 0;
+    for(unsigned int i = 0; i < mod_length; i++) {
+        rc = nicla::spiFLash.littlefs_binary_read(bhi_firmware_fname, &buf, divider, i * divider);
+        if(rc) {
+            goto out;
+        }
+        for (unsigned int j = 0; j < divider; j++) {
+            flash_crc = flash_crc ^ buf[j];
+        }
+
+    }
+    rc = nicla::spiFLash.littlefs_binary_read(bhi_firmware_fname, &buf, remain_length, (mod_length * divider));
+    for (unsigned int j = 0; j < remain_length; j++) {
+            flash_crc = flash_crc ^ buf[j];
+    }
+    printk("The Flash CRC is %u\n", flash_crc);
+
+    // Check to see if firmware match
+    if(original_crc == flash_crc) {
+        printk("The Original CRC and Flash CRC match!\n");
+        rc = nicla::spiFLash.littlefs_binary_write(crc_firmware_fname, &original_crc, 1);
+        if(rc) {
+            goto out;
+        }
+        printk("The Original CRC %u is written to flash\n", original_crc);
+    }
+
+    
 
     while (1) {
         // Read the boot count and print
         // nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
         // LOG_PRINTK("Boot count is %u\n", boot_count);
-        k_msleep(5000);
+        k_msleep(10000);
     }
 
 

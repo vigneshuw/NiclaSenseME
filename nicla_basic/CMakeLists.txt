@@ -9,7 +9,6 @@ project(nicla_basic)
 include_directories(library)
 
 target_sources(app PRIVATE src/main.cpp)
-target_sources(app PRIVATE library/BLE/NiclaService.cpp)
 target_sources(app PRIVATE library/RGB/RGBled.cpp)
 target_sources(app PRIVATE library/PMIC/BQ25120A.cpp)
 target_sources(app PRIVATE library/SPIFLASH/MX25R1635F.cpp)
