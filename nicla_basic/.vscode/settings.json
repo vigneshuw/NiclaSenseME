@@ -1,9 +1,7 @@
 {
   "nrf-connect.topdir": "${nrf-connect.sdk:2.3.0}",
   "nrf-connect.toolchain.path": "${nrf-connect.toolchain:2.3.0}",
-  "nrf-connect.applications": [
-    "${workspaceFolder}"
-  ],
+  "nrf-connect.applications": [],
   "files.associations": {
     "kernel.h": "c",
     "rgbled.h": "c"

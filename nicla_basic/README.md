@@ -17,7 +17,7 @@ Interfacing with NiclaSenseME with Zephyr RTOS
    2. Install pyocd 
 
 ```python
-pyocd flash -t nrf52832 ./build/zephyr/zephry.hex
+pyocd flash -t nrf52832 ./build/zephyr/zephyr.hex
 ```
 
 ## Serial output
