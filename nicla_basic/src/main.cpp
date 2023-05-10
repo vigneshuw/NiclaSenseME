@@ -37,7 +37,7 @@ char fname1[MAX_PATH_LENGTH];
 char fname2[MAX_PATH_LENGTH];
 uint32_t boot_count;
 uint8_t crc = 0;
-uint16_t counter = 0;
+uint32_t counter = 0;
 
 /*
 Bluetooth Connection
@@ -202,7 +202,8 @@ int main(void) {
         // Read the boot count and print
         // nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
         // LOG_PRINTK("Boot count is %u\n", boot_count);
-        k_msleep(5000);
+        k_msleep(10000);
+        printk("The counter is %u and CRC is %u\n", counter, crc);
     }
 
 
