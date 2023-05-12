@@ -50,7 +50,7 @@ int MX25R1635F::lsdir(const char* path) {
 }
 
 
-int MX25R1635F::littlefs_binary_read(char* fname, void* buf, size_t num_bytes) {
+int MX25R1635F::littlefs_binary_read(char* fname, void* buf, size_t num_bytes, size_t offset) {
 
     struct fs_file_t file;
     int rc, ret;
@@ -59,6 +59,13 @@ int MX25R1635F::littlefs_binary_read(char* fname, void* buf, size_t num_bytes) {
     rc = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
     if (rc < 0) {
         LOG_ERR("FAIL: open %s: %d", fname, rc);
+    }
+    
+    // Read offset
+    rc = fs_seek(&file, offset, FS_SEEK_SET);
+    if (rc < 0) {
+        LOG_ERR("FAIL: seek %s: %d", fname, rc);
+        goto out;
     }
 
     rc = fs_read(&file, buf, num_bytes);
@@ -179,7 +186,7 @@ int MX25R1635F::littlefs_mount(struct fs_mount_t* mp, bool automounted) {
 }
 
 
-int MX25R1635F::littlefs_binary_write(char* fname, char* data) {
+int MX25R1635F::littlefs_binary_write(char* fname, const unsigned char* data, size_t len) {
 
     struct fs_dirent dirent;
     struct fs_file_t file;
@@ -215,7 +222,7 @@ int MX25R1635F::littlefs_binary_write(char* fname, char* data) {
 		goto out;
     }
 
-    rc = fs_write(&file, data, sizeof(data));
+    rc = fs_write(&file, data, len);
     if (rc < 0) {
         LOG_ERR("FAIL: write %s: %d\n", fname, rc);
     }
