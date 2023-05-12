@@ -25,6 +25,17 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 
 /*
+Define FIFO
+*/
+static K_FIFO_DEFINE(fifo_bhi_fw_buf);
+struct bhi_fw_data {
+    void *fifo_reserved;
+    uint8_t data[200];
+    uint16_t len;
+};
+
+
+/*
 LittleFS
 */
 // Create the file mount point
@@ -79,11 +90,22 @@ static bool app_firmware_upload_cb(bool update_state) {
 }
 /** @brief Load the firmware data*/
 static bool app_firmware_data_cb(const uint8_t *val, uint16_t len) {
+
+    // Create a buffer to load data
+    struct bhi_fw_data *buf;
+    buf = (bhi_fw_data *) k_malloc(sizeof(*buf));
     // printk("The data length was %u\n", val);
-    for(int i = 0; i < len; i++) {
-        crc = crc  ^ val[i];
-        counter++;
-    }
+    // for(int i = 0; i < len; i++) {
+    //     crc = crc  ^ val[i];
+    //     counter++;
+    // }
+    // Copy the data
+    memcpy(buf->data, val, len);
+    buf->len = len;
+
+    // FIFO put
+    k_fifo_put(&fifo_bhi_fw_buf, buf);
+
     // printk("The CRC %u\n", crc);
     return 0;
 }
@@ -197,13 +219,19 @@ int main(void) {
 		return 1;
 	}
 	LOG_INF("Advertising successfully started"); 
+    bhi_fw_data *data;
 
     while (1) {
         // Read the boot count and print
         // nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
         // LOG_PRINTK("Boot count is %u\n", boot_count);
-        k_msleep(10000);
         printk("The counter is %u and CRC is %u\n", counter, crc);
+        data = (bhi_fw_data *) k_fifo_get(&fifo_bhi_fw_buf, K_FOREVER);
+        for (int i = 0; i < data->len; i++) {
+            crc = crc ^ data->data[i];
+        }
+        k_free(data);
+
     }
 
 
