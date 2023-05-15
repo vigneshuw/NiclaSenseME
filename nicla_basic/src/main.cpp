@@ -44,8 +44,9 @@ struct fs_mount_t *mp = &FS_FSTAB_ENTRY(PARTITION_NODE);
 bool automounted = false;
 
 // File names to read
-char fname1[MAX_PATH_LENGTH];
-char fname2[MAX_PATH_LENGTH];
+char boot_count_fname[MAX_PATH_LENGTH];
+char bhi_fw_fname[MAX_PATH_LENGTH];
+char bhi_fw_crc_fname[MAX_PATH_LENGTH];
 uint32_t boot_count;
 uint8_t crc = 0;
 uint32_t counter = 0;
@@ -91,22 +92,9 @@ static bool app_firmware_upload_cb(bool update_state) {
 /** @brief Load the firmware data*/
 static bool app_firmware_data_cb(const uint8_t *val, uint16_t len) {
 
-    // Create a buffer to load data
-    struct bhi_fw_data *buf;
-    buf = (bhi_fw_data *) k_malloc(sizeof(*buf));
-    // printk("The data length was %u\n", val);
-    // for(int i = 0; i < len; i++) {
-    //     crc = crc  ^ val[i];
-    //     counter++;
-    // }
-    // Copy the data
-    memcpy(buf->data, val, len);
-    buf->len = len;
+    nicla::spiFLash.littlefs_binary_write(bhi_fw_fname, val, len, counter, false);
+    counter += len;
 
-    // FIFO put
-    k_fifo_put(&fifo_bhi_fw_buf, buf);
-
-    // printk("The CRC %u\n", crc);
     return 0;
 }
 
@@ -165,8 +153,9 @@ int main(void) {
         return 0;
     }
 
-    snprintf(fname1, sizeof(fname1), "%s/boot_count", mp->mnt_point);
-    snprintf(fname2, sizeof(fname2), "%s/pattern.bin", mp->mnt_point);
+    snprintf(boot_count_fname, sizeof(boot_count_fname), "%s/boot_count.bin", mp->mnt_point);
+    snprintf(bhi_fw_fname, sizeof(bhi_fw_fname), "%s/bhi_update.bin", mp->mnt_point);
+    snprintf(bhi_fw_crc_fname, sizeof(bhi_fw_crc_fname), "%s/bhi_update_crc.bin", mp->mnt_point);
 
     rc = fs_statvfs(mp->mnt_point, &sbuf);
     if (rc < 0) {
@@ -186,7 +175,7 @@ int main(void) {
 		goto out;
 	}
 
-    rc = nicla::spiFLash.littlefs_increase_infile_value(fname1);
+    rc = nicla::spiFLash.littlefs_increase_infile_value(boot_count_fname);
 	if (rc) {
 		goto out;
 	}
@@ -221,16 +210,15 @@ int main(void) {
 	LOG_INF("Advertising successfully started"); 
     bhi_fw_data *data;
 
+    // Unlink the old firmware file
+    rc = nicla::spiFLash.littlefs_delete(bhi_fw_fname);
+    if(rc) {
+        printk("The file unlink failed %d\n", rc);
+    }
+
     while (1) {
-        // Read the boot count and print
-        // nicla::spiFLash.littlefs_binary_read(fname1, &boot_count, sizeof(boot_count));
-        // LOG_PRINTK("Boot count is %u\n", boot_count);
-        printk("The counter is %u and CRC is %u\n", counter, crc);
-        data = (bhi_fw_data *) k_fifo_get(&fifo_bhi_fw_buf, K_FOREVER);
-        for (int i = 0; i < data->len; i++) {
-            crc = crc ^ data->data[i];
-        }
-        k_free(data);
+
+        k_msleep(10000);
 
     }
 

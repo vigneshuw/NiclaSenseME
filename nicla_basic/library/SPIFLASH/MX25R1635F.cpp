@@ -186,14 +186,28 @@ int MX25R1635F::littlefs_mount(struct fs_mount_t* mp, bool automounted) {
 }
 
 
-int MX25R1635F::littlefs_binary_write(char* fname, const unsigned char* data, size_t len) {
+int MX25R1635F::littlefs_delete(char* fname) {
+
+    // Delete file
+    int rc = fs_unlink(fname);
+
+    return rc;
+
+}
+
+
+int MX25R1635F::littlefs_binary_write(char* fname, const unsigned char* data, size_t len, size_t offset=0, bool to_unlink=false) {
 
     struct fs_dirent dirent;
     struct fs_file_t file;
     int rc, ret;
 
-    // Delete the old
-    fs_unlink(fname);
+    // Delete old only when required
+    if(to_unlink) {
+        // Delete the old
+        fs_unlink(fname);
+    }
+    
 
     fs_file_t_init(&file);
 
@@ -216,7 +230,7 @@ int MX25R1635F::littlefs_binary_write(char* fname, const unsigned char* data, si
                 fname);
     }
     // Write the binary data
-    rc = fs_seek(&file, 0, FS_SEEK_SET);
+    rc = fs_seek(&file, offset, FS_SEEK_SET);
     if (rc < 0) {
         LOG_ERR("FAIL: seek %s: %d\n", fname, rc);
 		goto out;
