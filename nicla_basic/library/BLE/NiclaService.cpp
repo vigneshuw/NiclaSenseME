@@ -15,6 +15,7 @@ LOG_MODULE_DECLARE(NiclaBLE);
 
 static bool firware_update_state;
 static uint32_t boot_count;
+static uint8_t device_attrs[10];
 static struct ns_cb bt_ns_callbacks;
 
 
@@ -82,8 +83,49 @@ static ssize_t bhi_firmware_data(struct bt_conn *conn,
 }
 
 
+static ssize_t external_status_update(struct bt_conn *conn, 
+                    const struct bt_gatt_attr *attr,
+                    void *buf, 
+                    uint16_t len,
+                    uint16_t offset) {
+    
+    LOG_DBG("External Status has been updated, handle: %u, conn: %p, length: %u", attr->handle, 
+        (void *)conn, len);
+
+    if(bt_ns_callbacks.external_status_cb) {
+        // Cast and call app callback
+        uint8_t *val = (uint8_t *)buf;
+        bt_ns_callbacks.external_status_cb(val, len);
+    }
+
+}
+
+
+static ssize_t device_status_update(struct bt_conn *conn,
+                    const struct bt_gatt_attr *attr,
+                    void *buf,
+                    uint16_t len, 
+                    uint16_t offset) {
+    
+    LOG_DBG("Device Status has been read, handle: %u, conn: %p, length: %u", attr->handle, 
+        (void *)conn, len);
+
+    // Get the data location
+    const uint8_t *val = (uint8_t *)attr->user_data;
+    
+    if(bt_ns_callbacks.device_status_cb) {
+        // Update the data in the location of val 
+        bt_ns_callbacks.device_status_cb(device_attrs, sizeof(device_attrs));
+        return bt_gatt_attr_read(conn, attr, buf, len, offset, val, sizeof(device_attrs));
+
+    }
+
+
+}
+
+
 /** @brief Callback for reading the boot count in GATT Characteristics*/
-static ssize_t read_boot_count(struct bt_conn *conn,
+static ssize_t boot_count_update(struct bt_conn *conn,
                     const struct bt_gatt_attr *attr,
                     void *buf, 
                     uint16_t len,
@@ -112,6 +154,8 @@ int nicla_service_init(struct ns_cb *callbacks) {
         bt_ns_callbacks.boot_cnt_cb = callbacks->boot_cnt_cb;
         bt_ns_callbacks.firmware_update_cb = callbacks->firmware_update_cb;
         bt_ns_callbacks.firmware_data_cb = callbacks->firmware_data_cb;
+        bt_ns_callbacks.external_status_cb = callbacks->external_status_cb;
+        bt_ns_callbacks.device_status_cb = callbacks->device_status_cb;
     }
 
     return 0;
@@ -128,8 +172,18 @@ BT_GATT_PRIMARY_SERVICE(BT_UUID_NS),
     // Read of Boot Count
     BT_GATT_CHARACTERISTIC(BT_UUID_NS_BTC, 
                     BT_GATT_CHRC_READ, 
-                    BT_GATT_PERM_READ, read_boot_count, NULL, 
+                    BT_GATT_PERM_READ, boot_count_update, NULL, 
                     &boot_count),
+    // Read Device Status
+    BT_GATT_CHARACTERISTIC(BT_UUID_NS_DS, 
+                    BT_GATT_CHRC_READ,
+                    BT_GATT_PERM_READ, device_status_update, NULL, 
+                    device_attrs),
+    // Write external status
+    BT_GATT_CHARACTERISTIC(BT_UUID_NS_ES, 
+                    BT_GATT_CHRC_WRITE,
+                    BT_GATT_CHRC_WRITE, external_status_update, NULL,
+                    NULL),
     // Control BHI260AP Firmware Update
     BT_GATT_CHARACTERISTIC(BT_UUID_NS_BHI_FU, 
                     BT_GATT_CHRC_WRITE, 

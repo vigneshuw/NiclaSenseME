@@ -22,6 +22,9 @@ class nicla{
         // SPI devices
         static MX25R1635F spiFLash;
 
+        // File System
+        int initialize_file_system(void);
+
 };
 
 

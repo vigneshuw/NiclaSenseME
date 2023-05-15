@@ -5,7 +5,7 @@
 #include "MX25R1635F.hpp"
 
 
-LOG_MODULE_REGISTER(MX25R1635F, LOG_LEVEL_WRN);
+LOG_MODULE_REGISTER(MX25R1635F, LOG_LEVEL_INF);
 
 
 int MX25R1635F::lsdir(const char* path) {
@@ -95,6 +95,7 @@ int MX25R1635F::littlefs_increase_infile_value(char* fname) {
     rc = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
     if(rc < 0) {
         LOG_ERR("FAIL: open %s: %d", fname, rc);
+        goto out;
     }
 
     rc = fs_read(&file, &counter, sizeof(counter));
@@ -186,11 +187,56 @@ int MX25R1635F::littlefs_mount(struct fs_mount_t* mp, bool automounted) {
 }
 
 
-int MX25R1635F::littlefs_delete(char* fname) {
+int MX25R1635F::littlefs_delete(const char *path, const char *fname) {
 
+    // Flag for deletion
+    bool to_delete = false;
+
+    // Check if file exists
+    int rc;
+    struct fs_dir_t dirp;
+    static struct fs_dirent entry;
+
+    fs_dir_t_init(&dirp);
+
+    // Verify directory exists
+    rc = fs_opendir(&dirp, path);
+    if(rc) {
+        LOG_ERR("Error opening dir %s [%d]\n", path, rc);
+        return rc;
+    }
+
+    // Go through all to see if file exists
+    for(;;) {
+        // Read directory
+        rc = fs_readdir(&dirp, &entry);
+
+        if (rc || entry.name[0] == 0) {
+            if (rc < 0) {
+                LOG_ERR("Error reading dir [%d]. Unlink Stopped\n", rc);
+            }
+            break;
+        }
+
+        // File or directory found
+        if(entry.type == FS_DIR_ENTRY_FILE) {
+            if(strcmp(entry.name, fname) == 0) {
+                to_delete = true;
+                break;
+            }
+        }
+    }
+
+    // Close the open directory
+    fs_closedir(&dirp);
+    
     // Delete file
-    int rc = fs_unlink(fname);
-
+    if (to_delete) {
+        rc = fs_unlink(fname);
+    } else {
+        LOG_INF("No file to delete [%s]", fname);
+    }
+    
     return rc;
 
 }
