@@ -205,7 +205,7 @@ int main(void) {
 	LOG_INF("Advertising successfully started"); 
 
     // Unlink the old firmware file
-    rc = nicla::spiFLash.littlefs_delete(mp->mnt_point, bhi_fw_fname);
+    rc = nicla::spiFLash.littlefs_delete(mp->mnt_point, "bhi_update.bin");
     if(rc) {
         printk("The file unlink failed %d\n", rc);
     }

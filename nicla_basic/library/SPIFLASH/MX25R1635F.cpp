@@ -191,6 +191,9 @@ int MX25R1635F::littlefs_delete(const char *path, const char *fname) {
 
     // Flag for deletion
     bool to_delete = false;
+    // Get the full file path
+    char full_delete_path[MAX_PATH_LENGTH];
+    snprintf(full_delete_path, sizeof(full_delete_path), "%s/%s", path, fname);
 
     // Check if file exists
     int rc;
@@ -232,9 +235,10 @@ int MX25R1635F::littlefs_delete(const char *path, const char *fname) {
     
     // Delete file
     if (to_delete) {
-        rc = fs_unlink(fname);
+        rc = fs_unlink(full_delete_path);
+        LOG_INF("File deleted! [%s]", full_delete_path);
     } else {
-        LOG_INF("No file to delete [%s]", fname);
+        LOG_INF("No file to delete [%s]", full_delete_path);
     }
     
     return rc;

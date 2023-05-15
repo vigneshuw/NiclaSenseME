@@ -2,7 +2,7 @@
 #define _MX25R1635F_H_
 
 
-#define MAX_PATH_LENGTH 255
+#define MAX_PATH_LENGTH 100
 
 
 class MX25R1635F {
