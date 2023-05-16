@@ -1,0 +1,48 @@
+#include "SensorManager.h"
+
+
+SensorManager::SensorManager():
+    _sensors(),
+    _sensorsLen(0)
+{
+
+}
+
+
+void SensorManager::process(SensorDataPacket &data) {
+    for(int i = 0; i < _sensorsLen; i++) {
+        if(data.sensorId == _sensors[i]->id()) {
+            _sensors[i]->setData(data);
+            return;
+        }
+    }
+}
+
+
+void SensorManager::process(SensorLongDataPacket &data) {
+    for(int i = 0; i < _sensorsLen; i++) {
+        if(data.sensorId == _sensors[i]->id()) {
+            _sensors[i]->setData(data);
+            return;
+        }
+    }
+}
+
+
+void SensorManager::subscribe(SensorClass *sensor) {
+    _sensors[_sensorsLen++] = sensor;
+}
+
+
+void SensorManager::unsubscribe(SensorClass *sensor) {
+    // One sensor object with one sensor ID
+    for (int i = 0; i < _sensorsLen; i++) {
+        if (sensor->id() == _sensors[i]->id()) {
+            _sensors[i] = _sensors[--_sensorsLen];
+            _sensors[_sensorsLen] = NULL;
+            return;
+        }
+    }
+}
+
+SensorManager sensorManager;
