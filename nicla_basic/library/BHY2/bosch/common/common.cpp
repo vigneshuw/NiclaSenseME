@@ -42,30 +42,51 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/gpio.h>
 
-#include "../bosch/bhy2_parse.h"
-#include "../bosch/bhy2.h"
+#include "bosch/bhy2_parse.h"
+#include "bosch/bhy2.h"
 
 #define BHA260_SHUTTLE_ID 0x139
 #define BHI260_SHUTTLE_ID 0x119
 
+// SPI0 node
+#define SPI0                                DT_NODELABEL(spi2)
 // SPI node for sensortec
-#define BHI260_NODE DT_NODELABEL(bhi260ap)
+#define BHI260_NODE                         DT_NODELABEL(bhi260ap)
+#define GPIO_BHI260_INT                     DT_NODELABEL(bhi_int)             
+
+
+LOG_MODULE_REGISTER(BOSCH_COMMON, LOG_LEVEL_INF);
+
+
+// BHI260AP Interrupt
+const struct gpio_dt_spec BHI260_INT = GPIO_DT_SPEC_GET(GPIO_BHI260_INT, gpios);
 
 
 /*
-Configure SPI
+SPI
 */
+// SPI Configuration
+static struct spi_config bhi260_spi_conf;
+// SPI Device
+const struct device *bhi260_spi = DEVICE_DT_GET(SPI0);
+// SPI DT spec
+struct spi_dt_spec bhi260_spi_dt;
+
+// GPIO-CS
+static struct gpio_dt_spec bhi260_spi_cs = SPI_CS_GPIOS_DT_SPEC_GET(BHI260_NODE);
+
+// mbed::DigitalOut BHY260_CS_PIN(SPI_PSELSS0, 1);
+// mbed::DigitalIn BHY260_INT_PIN(INT_BHI260);
 
 
-mbed::DigitalOut BHY260_CS_PIN(SPI_PSELSS0, 1);
-mbed::DigitalIn BHY260_INT_PIN(INT_BHI260);
-
-
-bool get_interrupt_status(void)
-{
-    return BHY260_INT_PIN;
+bool get_interrupt_status(void) {
+    
+    return gpio_pin_get_dt(&BHI260_INT);
 }
 
 const char* get_api_error(int8_t error_code)
@@ -110,11 +131,53 @@ const char* get_api_error(int8_t error_code)
     return ret;
 }
 
-mbed::SPI spi(SPI_PSELMOSI0, SPI_PSELMISO0, SPI_PSELSCK0 /*, SPI_PSELSS0 */);
+// mbed::SPI spi(SPI_PSELMOSI0, SPI_PSELMISO0, SPI_PSELSCK0 /*, SPI_PSELSS0 */);
 
-void setup_interfaces(bool reset_power, enum bhy2_intf intf)
-{
-    spi.frequency(16000000);
+void setup_interfaces(bool reset_power, enum bhy2_intf intf) {
+
+    int ret;
+    /*
+    BHI Interrupt pin
+    */
+    // Configure
+    ret = gpio_pin_configure_dt(&BHI260_INT, GPIO_INPUT | GPIO_ACTIVE_HIGH);
+    if(ret) {
+        LOG_ERR("BHI Interrupt pin configuration failed, rc = %d\n", ret);
+    }
+    // Check for readiness
+    if(!device_is_ready(BHI260_INT.port)){
+        LOG_ERR("GPIO for BHI INT not ready!, rc = %d", ret);
+    }
+
+    /*
+    BHI SPI
+    */
+    // Update the configuration
+    bhi260_spi_conf = {
+        .frequency = 16000000,
+        .operation = (SPI_OP_MODE_MASTER | SPI_WORD_SET(8))
+    };
+    // spi.frequency(16000000);
+    // Combine config and bus to a DT object
+    bhi260_spi_dt = {
+        .bus = bhi260_spi,
+        .config = bhi260_spi_conf
+    };
+    // Validate readiness of SPI
+    if(!spi_is_ready_dt(&bhi260_spi_dt)) {
+        LOG_ERR("The BHI SPI interface is not ready!\n");
+    }
+
+    // CS Pin for BHI SPI
+    ret = gpio_pin_configure_dt(&bhi260_spi_cs, GPIO_OUTPUT | GPIO_ACTIVE_HIGH);
+    if(ret) {
+        LOG_ERR("BHI SPI CS cannot be configured, ret = %d\n", ret);
+    }
+    // Check for readiness
+    if(!device_is_ready(bhi260_spi_cs.port)){
+        LOG_ERR("BHI SPI CS is not ready!\n");
+    }
+
 }
 
 void close_interfaces(void)
@@ -124,11 +187,40 @@ void close_interfaces(void)
 int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
+    int ret;
+    // BHY260_CS_PIN = 0;
+    // spi.write(reg_addr);
+    // spi.write(NULL, (uint16_t)length, (char*)reg_data, (uint16_t)length);
+    // BHY260_CS_PIN = 1;
 
-    BHY260_CS_PIN = 0;
-    spi.write(reg_addr);
-    spi.write(NULL, (uint16_t)length, (char*)reg_data, (uint16_t)length);
-    BHY260_CS_PIN = 1;
+    // Data Configuration
+    // TX
+    const struct spi_buf tx_buf = {
+        .buf = &reg_addr,
+        .len = 1
+    };
+    const struct spi_buf_set tx = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
+    // RX
+    const struct spi_buf rx_buf = {
+        .buf = reg_data,
+        .len = length
+    };
+    const struct spi_buf_set rx = {
+        .buffers = &rx_buf,
+        .count = 1
+    };
+
+    gpio_pin_set_dt(&bhi260_spi_cs, 0);
+    // SPI write and read
+    ret = spi_transceive_dt(&bhi260_spi_dt, &tx, &rx);
+    gpio_pin_set_dt(&bhi260_spi_cs, 1);
+
+    if (ret) {
+        LOG_ERR("SPI transaction failed, ret = %d\n", ret);
+    }
 
     return BHY2_INTF_RET_SUCCESS;
 }
@@ -136,10 +228,38 @@ int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
 int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
-    BHY260_CS_PIN = 0;
-    spi.write(reg_addr);
-    spi.write((char*)reg_data, (uint16_t)length, NULL, 0);
-    BHY260_CS_PIN = 1;
+    int ret;
+    // BHY260_CS_PIN = 0;
+    // spi.write(reg_addr);
+    // spi.write((char*)reg_data, (uint16_t)length, NULL, 0);
+    // BHY260_CS_PIN = 1;
+
+    // Data Configuration
+    // TX
+    const struct spi_buf tx_buf[] = {
+    {
+        .buf = &reg_addr,
+        .len = 1
+    },
+    {
+        /** @todo Prevent casting away of const pointers*/
+        .buf = (uint8_t *) reg_data,
+        .len = length
+    }
+    };
+    const struct spi_buf_set tx = {
+        .buffers = tx_buf,
+        .count = 2 //ARRAY_SIZE(tx_buf)
+    };
+
+    gpio_pin_set_dt(&bhi260_spi_cs, 0);
+    // SPI Write
+    ret = spi_write_dt(&bhi260_spi_dt, &tx);
+    gpio_pin_set_dt(&bhi260_spi_cs, 1);
+
+    if(ret) {
+        LOG_ERR("SPI transaction failed, ret = %d\n", ret);
+    }
 
     return BHY2_INTF_RET_SUCCESS;
 }
@@ -163,7 +283,8 @@ int8_t bhy2_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length
 void bhy2_delay_us(uint32_t us, void *private_data)
 {
     (void)private_data;
-    wait_us(us);
+    // wait_us(us);
+    k_usleep(us);
 }
 
 const char* get_sensor_error_text(uint8_t sensor_error)

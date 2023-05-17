@@ -12,6 +12,7 @@
 
 #include "NiclaSystem.hpp"
 #include "BLE/NiclaService.hpp"
+#include "bosch/common/common.h"
 
 
 #define DEVICE_NAME                 CONFIG_BT_DEVICE_NAME
@@ -209,6 +210,8 @@ int main(void) {
     if(rc) {
         printk("The file unlink failed %d\n", rc);
     }
+
+    setup_interfaces(0, BHY2_SPI_INTERFACE);
 
     while (1) {
 

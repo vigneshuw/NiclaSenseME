@@ -41,7 +41,7 @@
 
 #include <stdbool.h>
 
-#include "../bosch/bhy2.h"
+#include "bosch/bhy2.h"
 
 const char *get_coines_error(int16_t rslt);
 const char *get_api_error(int8_t error_code);

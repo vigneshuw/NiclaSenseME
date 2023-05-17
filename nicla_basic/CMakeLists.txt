@@ -7,6 +7,7 @@ project(nicla_basic)
 
 # includes
 include_directories(library)
+include_directories(library/BHY2)
 
 target_sources(app PRIVATE src/main.cpp)
 target_sources(app PRIVATE library/BLE/NiclaService.cpp)
@@ -14,4 +15,5 @@ target_sources(app PRIVATE library/RGB/RGBled.cpp)
 target_sources(app PRIVATE library/PMIC/BQ25120A.cpp)
 target_sources(app PRIVATE library/SPIFLASH/MX25R1635F.cpp)
 target_sources(app PRIVATE library/NiclaSystem.cpp)
-
+# BHI260AP 
+target_sources(app PRIVATE library/BHY2/bosch/common/common.cpp)

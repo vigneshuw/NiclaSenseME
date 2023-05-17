@@ -82,11 +82,12 @@ littlefs
 /*
 SPI for Bosch Sensortech
 */
+// Adding an SPI device
 &spi2 {
     // 26 - Flash; 31 - Bosch
     cs-gpios = <&gpio0 26 GPIO_ACTIVE_LOW>, 
                 <&gpio0 31 GPIO_ACTIVE_LOW>;
-    
+
     bhi260ap: bhi260ap@1{
         compatible = "spi-device";
         reg = <1>;
@@ -94,3 +95,13 @@ SPI for Bosch Sensortech
     };
 };
 
+// Interrupt control from BHI260AP
+/ {
+    gpio_keys {
+        bhi_int: bhi_int{
+            label = "BHIINT";
+            gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
+            status = "okay";
+        };
+    };
+};
