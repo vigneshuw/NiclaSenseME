@@ -45,41 +45,6 @@
 };
 
 /*
-littlefs
-*/
-// Mounting Info
-/ {
-	fstab {
-		compatible = "zephyr,fstab";
-		lfs1: lfs1 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs1";
-			partition = <&logging_partition>;
-            automount;
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
-			block-cycles = <512>;
-		};
-	};
-};
-
-// Specify external flash
-/ {
-	chosen {
-		nordic,pm-ext-flash = &mx25r1635f;
-	};
-};
-
-// Partition for external flash
-&logging_partition {
-    label = "storage";
-    reg = < 0x00000000 0x00200000 >;
-};
-
-
-/*
 SPI for Bosch Sensortech
 */
 // Adding an SPI device
@@ -95,6 +60,12 @@ SPI for Bosch Sensortech
     };
 };
 
+
+// &i2c1 {
+//     status = "disabled";
+// };
+
+
 // Interrupt control from BHI260AP
 / {
     gpio_keys {
@@ -102,6 +73,11 @@ SPI for Bosch Sensortech
             label = "BHIINT";
             gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
             status = "okay";
+        };
+
+        bhi_reset: bhi_reset{
+            label = "BHI_RESET";
+            gpios = < &gpio0 18 GPIO_ACTIVE_HIGH>;
         };
     };
 };
