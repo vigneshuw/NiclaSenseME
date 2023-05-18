@@ -66,7 +66,7 @@ LOG_MODULE_REGISTER(BOSCH_COMMON, LOG_LEVEL_INF);
 // BHI260AP Interrupt
 const struct gpio_dt_spec BHI260_INT = GPIO_DT_SPEC_GET(GPIO_BHI260_INT, gpios);
 const struct gpio_dt_spec BHI260_RESET = GPIO_DT_SPEC_GET(GPIO_BHI260_RESET, gpios);
-
+const struct gpio_dt_spec BHI_CS = SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(bhi260ap));
 
 /*
 SPI
@@ -74,16 +74,17 @@ SPI
 
 const struct device *spi_dev;
 
-struct spi_cs_control spim_cs = {
-    .gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(bhi260ap)),
-    .delay = 0,
-};
+// struct spi_cs_control spim_cs = {
+//     .gpio = SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(bhi260ap)),
+//     .delay = 0,
+// };
 
 static const struct spi_config spi_cfg = {
     .frequency = 16000000,
     .operation = (SPI_WORD_SET(8) | SPI_OP_MODE_MASTER),
     .slave = 0,
-    .cs = &spim_cs,
+    // .cs = &spim_cs,
+    .cs = NULL
 };
 
 // mbed::DigitalOut BHY260_CS_PIN(SPI_PSELSS0, 1);
@@ -167,6 +168,19 @@ void setup_interfaces(bool reset_power, enum bhy2_intf intf) {
         LOG_ERR("GPIO for BHI RESET not ready!, rc = %d", ret);
     }
 
+    /*
+    BHI CS PIN
+    */
+    ret = gpio_pin_configure_dt(&BHI_CS, GPIO_OUTPUT | GPIO_ACTIVE_LOW);
+    if(ret) {
+        LOG_ERR("BHI CS pin configuration failed, rc = %d\n", ret);
+    }
+    // Check for readiness
+    if(!device_is_ready(BHI_CS.port)){
+        LOG_ERR("GPIO for BHI CS not ready!, rc = %d", ret);
+    }
+
+
     // Reset the device
     gpio_pin_set_dt(&BHI260_RESET, 0);
     k_msleep(5);
@@ -181,9 +195,9 @@ void setup_interfaces(bool reset_power, enum bhy2_intf intf) {
         LOG_ERR("SPI Master not ready!\n");
     }
 
-    if(!device_is_ready(spim_cs.gpio.port)) {
-        LOG_ERR("SPI Master Chip select not ready!\n");
-    }
+    // if(!device_is_ready(spim_cs.gpio.port)) {
+    //     LOG_ERR("SPI Master Chip select not ready!\n");
+    // }
 
 }
 
@@ -221,12 +235,12 @@ int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
         .count = 1
     };
 
-    // gpio_pin_set_dt(&bhi260_spi_cs, 1);
+    gpio_pin_set_dt(&BHI_CS, 1);
     // SPI write and read
     // ret = spi_transceive(spi_dev, &spi_cfg,  &tx, &rx);
     ret = spi_write(spi_dev, &spi_cfg, &tx);
     ret = spi_read(spi_dev, &spi_cfg, &rx);
-    // gpio_pin_set_dt(&bhi260_spi_cs, 0);
+    gpio_pin_set_dt(&BHI_CS, 0);
 
     if (ret) {
         LOG_ERR("SPI transaction failed, ret = %d\n", ret);
@@ -257,20 +271,20 @@ int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length
         .len = length
     }
     };
-    struct spi_buf_set tx1 = {
-        .buffers = &tx_buf[0],
-        .count = 1 //ARRAY_SIZE(tx_buf)
+    struct spi_buf_set tx = {
+        .buffers = tx_buf,
+        .count = 2 //ARRAY_SIZE(tx_buf)
     };
-    struct spi_buf_set tx2 = {
-        .buffers = &tx_buf[1],
-        .count = 1
-    };
+    // struct spi_buf_set tx2 = {
+    //     .buffers = &tx_buf[1],
+    //     .count = 1
+    // };
 
-    // gpio_pin_set_dt(&bhi260_spi_cs, 1);
+    gpio_pin_set_dt(&BHI_CS, 1);
     // SPI Write
-    ret = spi_write(spi_dev, &spi_cfg, &tx1);
-    ret = spi_write(spi_dev, &spi_cfg, &tx2);
-    // gpio_pin_set_dt(&bhi260_spi_cs, 0);
+    ret = spi_write(spi_dev, &spi_cfg, &tx);
+    // ret = spi_write(spi_dev, &spi_cfg, &tx2);
+    gpio_pin_set_dt(&BHI_CS, 0);
 
     if(ret) {
         LOG_ERR("SPI transaction failed, ret = %d\n", ret);
