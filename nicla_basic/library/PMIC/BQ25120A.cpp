@@ -36,16 +36,16 @@ bool BQ25120A::enable3V3LDO() {
     uint8_t current_ldo_reg = {0};
     readByte(BQ25120A_LDO_CTRL, &current_ldo_reg, 1);
     if(current_ldo_reg != ldo_reg) {
-        disableCD();
         return false;
     }
-    return false;
+    return true;
 
 }
 
 
 bool BQ25120A::enable1V8LDO() {
 
+    enableCD();
     // LS/LDO = 0.8V + LS_LDOCODE x 100mV
     uint8_t ldo_reg = 0xA8;
     // write reg
@@ -53,10 +53,9 @@ bool BQ25120A::enable1V8LDO() {
     uint8_t current_ldo_reg = {0};
     readByte(BQ25120A_LDO_CTRL, &current_ldo_reg, 1);
     if(current_ldo_reg != ldo_reg) {
-        disableCD();
         return false;
     }
-    return false;
+    return true;
 
 }
 
