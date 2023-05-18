@@ -44,8 +44,7 @@ bool BQ25120A::enable3V3LDO() {
 
 
 bool BQ25120A::enable1V8LDO() {
-
-    enableCD();
+    
     // LS/LDO = 0.8V + LS_LDOCODE x 100mV
     uint8_t ldo_reg = 0xA8;
     // write reg
