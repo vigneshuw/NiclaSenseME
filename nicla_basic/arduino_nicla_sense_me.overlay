@@ -103,5 +103,10 @@ SPI for Bosch Sensortech
             gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
             status = "okay";
         };
+
+        bhi_reset: bhi_reset{
+            label = "BHI_RESET";
+            gpios = < &gpio0 18 GPIO_ACTIVE_HIGH>;
+        };
     };
 };

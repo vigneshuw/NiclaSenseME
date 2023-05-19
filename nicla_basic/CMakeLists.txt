@@ -17,3 +17,7 @@ target_sources(app PRIVATE library/SPIFLASH/MX25R1635F.cpp)
 target_sources(app PRIVATE library/NiclaSystem.cpp)
 # BHI260AP 
 target_sources(app PRIVATE library/BHY2/bosch/common/common.cpp)
+target_sources(app PRIVATE library/BHY2/bosch/bhy2_hif.c)
+target_sources(app PRIVATE library/BHY2/bosch/bhy2.c)
+target_sources(app PRIVATE library/BHY2/bosch/bhy2_parse.c)
+target_sources(app PRIVATE library/BHY2/BoschSensortec.cpp)

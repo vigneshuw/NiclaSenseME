@@ -12,8 +12,10 @@
 
 #include "NiclaSystem.hpp"
 #include "BLE/NiclaService.hpp"
-#include "bosch/common/common.h"
+// #include "bosch/common/common.h"
 
+// #include "bosch/common/common.h"
+#include "BoschSensortec.h"
 
 #define DEVICE_NAME                 CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN             (sizeof(DEVICE_NAME) - 1)
@@ -169,49 +171,14 @@ int main(void) {
     */
     nicla::leds.begin();
     nicla::pmic.enableCharge(100);
-
-
-    /*
-    File System Initialization
-    */
-    int rc = intialize_file_system();
-
-    /*
-    BLE
-    */
-    // Registering Callbacks
-    int err;
-    bt_conn_cb_register(&connection_callbacks);
-    err = nicla_service_init(&app_callbacks);
-    if(err) {
-        LOG_ERR("Failed to initialize the read/write calbacks\n");
-        return 1;
+    bool ret = nicla::pmic.enable3V3LDO();
+    if(!ret) {
+        LOG_ERR("3V3LDO failed!\n");
     }
-    
-    // Enable BLE
-    err = bt_enable(NULL);
-    if (err) {
-		LOG_ERR("Bluetooth init failed (err %d)", err);
-		return 1;
-	}
-	LOG_INF("Bluetooth initialized");
+    k_msleep(5000);
 
-    // Start Advertising
-	err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad),
-			      sd, ARRAY_SIZE(sd));
-	if (err) {
-		LOG_ERR("Advertising failed to start (err %d)", err);
-		return 1;
-	}
-	LOG_INF("Advertising successfully started"); 
-
-    // Unlink the old firmware file
-    rc = nicla::spiFLash.littlefs_delete(mp->mnt_point, "bhi_update.bin");
-    if(rc) {
-        printk("The file unlink failed %d\n", rc);
-    }
-
-    setup_interfaces(0, BHY2_SPI_INTERFACE);
+    // setup_interfaces(0, BHY2_SPI_INTERFACE);
+    sensortec.begin();
 
     while (1) {
 

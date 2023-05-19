@@ -23,7 +23,7 @@ enum SensorAckCode {
 class BoschSensortec {
     public:
         BoschSensortec();
-        virtual ~BoschSensortec();
+        // virtual ~BoschSensortec();
 
         /** @brief Setting up the SPI interface */
         bool begin();
@@ -80,7 +80,7 @@ class BoschSensortec {
 
 };
 
-extern BoschSensortec sensortech;
+extern BoschSensortec sensortec;
 
 
 #endif
