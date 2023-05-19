@@ -2,16 +2,25 @@
 #define _BOSCH_SENSORTEC_H_
 
 #include <zephyr/types.h>
+#include <zephyr/kernel.h>
 
 #include "bosch/common/common.h"
 #include "sensors/SensorTypes.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "bosch/bhy2.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define SENSOR_QUEUE_SIZE   10
 #define WORK_BUFFER_SIZE    2048
 
 #define LONG_SENSOR_QUEUE_SIZE 5
 #define MAX_READ_WRITE_LEN 256
+
 
 /** @brief Enumeration to check for correct short message delivery over ESLOV communication*/
 enum SensorAckCode {
@@ -23,7 +32,7 @@ enum SensorAckCode {
 class BoschSensortec {
     public:
         BoschSensortec();
-        // virtual ~BoschSensortec();
+        virtual ~BoschSensortec();
 
         /** @brief Setting up the SPI interface */
         bool begin();
@@ -35,7 +44,7 @@ class BoschSensortec {
         void configureSensor(SensorConfigurationPacket& config);
 
         /** @brief Configure the range of the sensor*/
-        void configureSensorRange(uint8_t id, uint16_t range);
+        int configureSensorRange(uint8_t id, uint16_t range);
 
         /** @brief Get the sensor configuration object for a virtual sensor */
         void getSensorConfiguration(uint8_t id, SensorConfig &virtual_sensor_conf);
@@ -44,7 +53,7 @@ class BoschSensortec {
         void printSensors();
 
         /** @brief Check to see if the sensor corresponding to an ID is present */
-        void hasSensor(uint8_t sensorID);
+        bool hasSensor(uint8_t sensorID);
 
         /** @brief Return available sensor data*/
         uint8_t availableSensorData();
@@ -69,6 +78,10 @@ class BoschSensortec {
 
 
     private:
+        // FIFO Queue
+        struct k_fifo sensorQueue;
+        struct k_fifo longSensorQueue;
+
         uint8_t _workBuffer[WORK_BUFFER_SIZE];
         uint8_t _acknowledgement;
 

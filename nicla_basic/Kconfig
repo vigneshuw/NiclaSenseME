@@ -18,4 +18,9 @@ config APP_LITTLEFS_STORAGE_BLK_SDMMC
     bool "Use block device (e.g. SD MMC) backend"
 endchoice
 
+config SET_LOG_LEVEL
+    int "Set the logging level for the module"
+    help
+      Use this to set the logging level across the module
+
 source "Kconfig.zephyr"
