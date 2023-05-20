@@ -22,20 +22,20 @@ void BoschParser::parseData(const struct bhy2_fifo_parse_data_info *fifoData, vo
 
     sz = fifoData->data_size - 1;
     if(sz <= SENSOR_DATA_FIXED_LENGTH) {
-        SensorDataPacket sensorData;
-        sensorData.sensorId = fifoData->sensor_id;
-        sensorData.size = sz + 1;
+        SensorDataPacket *sensorData = (SensorDataPacket *) k_malloc(sizeof(SensorDataPacket));
+        sensorData->sensorId = fifoData->sensor_id;
+        sensorData->size = sz + 1;
         if (sz > 0) 
-            memcpy(&sensorData.data, fifoData->data_ptr, sz);
+            memcpy(sensorData->data, fifoData->data_ptr, sz);
 
         sensortec.addSensorData(sensorData);
     } else {
-        SensorLongDataPacket sensorDataLong;
-        sensorDataLong.sensorId = fifoData->sensor_id;
+        SensorLongDataPacket *sensorDataLong = (SensorLongDataPacket *) k_malloc(sizeof(SensorLongDataPacket));
+        sensorDataLong->sensorId = fifoData->sensor_id;
         sz = (sz <= SENSOR_LONG_DATA_FIXED_LENGTH) ? sz : SENSOR_LONG_DATA_FIXED_LENGTH;
-        sensorDataLong.size = sz + 1;
+        sensorDataLong->size = sz + 1;
 
-        memcpy(&sensorDataLong.data, fifoData->data_ptr, sz);
+        memcpy(sensorDataLong->data, fifoData->data_ptr, sz);
         sensortec.addLongSensorData(sensorDataLong);
     }
 

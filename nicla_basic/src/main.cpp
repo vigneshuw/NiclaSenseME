@@ -15,7 +15,7 @@
 // #include "bosch/common/common.h"
 
 // #include "bosch/common/common.h"
-#include "BoschSensortec.h"
+// #include "BoschSensortec.h"
 
 #define DEVICE_NAME                 CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN             (sizeof(DEVICE_NAME) - 1)
@@ -178,7 +178,7 @@ int main(void) {
     k_msleep(5000);
 
     // setup_interfaces(0, BHY2_SPI_INTERFACE);
-    sensortec.begin();
+    // sensortec.begin();
 
     while (1) {
 

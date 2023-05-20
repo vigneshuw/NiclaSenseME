@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(BoschSensortech, CONFIG_SET_LOG_LEVEL);
 
 
 BoschSensortec::BoschSensortec() :
-    _acknowledgement(SensorAck)
+    _acknowledgement(SensorNack)
 {
 
 }
@@ -123,10 +123,81 @@ void BoschSensortec::getSensorConfiguration(uint8_t id, SensorConfig &virt_senso
 }
 
 uint8_t BoschSensortec::availableSensorData() {
-    return 
+    return !_sensorQueue.is_empty();
 }
 
+uint8_t BoschSensortec::availableLongSensorData() {
+    return !_sensorLongQueue.is_empty();
+}
 
+bool BoschSensortec::readSensorData(SensorDataPacket *data) {
 
+    return _sensorQueue.get(data);
+}
+
+bool BoschSensortec::readLongSensorData(SensorLongDataPacket *data) {
+    
+    return _sensorLongQueue.get(data);
+}
+
+void BoschSensortec::addSensorData(SensorDataPacket *sensorData) {
+    
+    /** @todo Fix the callback in BoschParser for malloc memory allocation*/
+    int ret = _sensorQueue.put(sensorData);
+    if(ret)
+        LOG_DBG("[FAIL] Data cannot be added to Circular BUffer %d\n", ret);
+}
+
+void BoschSensortec::addLongSensorData(SensorLongDataPacket *sensorData) {
+    int ret = _sensorLongQueue.put(sensorData);
+    if(ret)
+        LOG_DBG("[FAIL] Data cannot be added to Circular BUffer %d\n", ret);
+}
+
+uint8_t BoschSensortec::acknowledgement() {
+    uint8_t ack = _acknowledgement;
+    // Reset the acknowledgement
+    _acknowledgement = SensorNack;
+    return ack;
+}
+
+void BoschSensortec::update() {
+    if(get_interrupt_status()) {
+        auto ret = bhy2_get_and_process_fifo(_workBuffer, WORK_BUFFER_SIZE, &_bhy2);
+        LOG_DBG("ret - %s\n", get_api_error(ret));
+    }
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if BHY2_CFG_DELEGATE_FIFO_PARSE_CB_INFO_MGMT
+void bhy2_get_fifo_parse_callback_info_delegate(uint8_t sensor_id, 
+                        struct bhy2_fifo_parse_callback_table *info,
+                        const struct bhy2_dev *dev) {
+
+    info->callback_ref = NULL;
+    if (sensor_id < BHY2_SENSOR_ID_MAX) {
+        info->callback = BoschParser::parseData;
+    } else {
+        switch (sensor_id) {
+            case BHY2_SYS_ID_META_EVENT:
+            case BHY2_SYS_ID_META_EVENT_WU:
+                info->callback = BoschParser::parseMetaEvent;
+                break;
+            case BHY2_SYS_ID_DEBUG_MSG:
+                info->callback = BoschParser::parseDebugMessage;
+                break;
+            default:
+                info->callback = NULL;
+        }
+    }
+}
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 BoschSensortec sensortec;

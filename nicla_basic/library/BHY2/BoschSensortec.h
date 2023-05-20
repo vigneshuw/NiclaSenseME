@@ -15,6 +15,9 @@ extern "C"
 }
 #endif
 
+#include "Buffer/CircularBuffer.h"
+
+
 #define SENSOR_QUEUE_SIZE   10
 #define WORK_BUFFER_SIZE    2048
 
@@ -62,25 +65,25 @@ class BoschSensortec {
         uint8_t availableLongSensorData();
 
         /** @brief Read sensor data */
-        bool readSensorData(SensorDataPacket &data);
+        bool readSensorData(SensorDataPacket *data);
 
         /** @brief Read long sensor data */
-        bool readLongSensorData(SensorLongDataPacket &data);
+        bool readLongSensorData(SensorLongDataPacket *data);
 
         /** @brief Handle FIFO of data queue */
-        void addSensorData(SensorDataPacket &sensorData);
+        void addSensorData(SensorDataPacket *sensorData);
 
         /** @brief Handle FIFO of data queue for long sensor data */
-        void addLongSensorData(SensorLongDataPacket &sensorData);
+        void addLongSensorData(SensorLongDataPacket *sensorData);
 
         /** @brief Reset NACK flag */
         uint8_t acknowledgement();
 
 
     private:
-        // FIFO Queue
-        struct k_fifo sensorQueue;
-        struct k_fifo longSensorQueue;
+        // Circular FIFO
+        CircularBufferFIFO _sensorQueue {SENSOR_QUEUE_SIZE};
+        CircularBufferFIFO _sensorLongQueue {LONG_SENSOR_QUEUE_SIZE};
 
         uint8_t _workBuffer[WORK_BUFFER_SIZE];
         uint8_t _acknowledgement;
