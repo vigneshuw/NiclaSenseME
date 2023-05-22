@@ -12,10 +12,7 @@
 
 #include "NiclaSystem.hpp"
 #include "BLE/NiclaService.hpp"
-// #include "bosch/common/common.h"
-
-// #include "bosch/common/common.h"
-// #include "BoschSensortec.h"
+#include "BHY2.h"
 
 #define DEVICE_NAME                 CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN             (sizeof(DEVICE_NAME) - 1)
@@ -24,7 +21,7 @@
 #define PARTITION_NODE              DT_NODELABEL(lfs1)
 
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(main, CONFIG_SET_LOG_LEVEL);
 
 
 /*
@@ -163,6 +160,9 @@ struct bt_conn_cb connection_callbacks = {
     .disconnected   = on_disconnected,
 };
 
+// Acceleration sensor
+SensorXYZ accel(SENSOR_ID_ACC_PASS);
+
 
 int main(void) {
 
@@ -175,14 +175,16 @@ int main(void) {
     if(!ret) {
         LOG_ERR("3V3LDO failed!\n");
     }
-    k_msleep(5000);
-
-    // setup_interfaces(0, BHY2_SPI_INTERFACE);
-    // sensortec.begin();
+    
+    // Initialize
+    bhy2.begin();
+    accel.begin(400.0, 0);
 
     while (1) {
+        
+        bhy2.update(1000);
 
-        k_msleep(10000);
+        printk("X-%d, Y-%d, Z-%d\n", accel.x(), accel.y(), accel.z());
 
     }
 

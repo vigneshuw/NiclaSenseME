@@ -32,7 +32,7 @@ class SensorOrientation : public SensorClass {
             _factor = factor;
         }
 
-        void getFactor() {
+        float getFactor() {
             return _factor;
         }
 

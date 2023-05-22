@@ -40,8 +40,11 @@ class BoschSensortec {
         /** @brief Setting up the SPI interface */
         bool begin();
         
-        /** @brief Update the FIFO buffers*/
-        void update();
+        /** @brief Get and process the FIFOs
+         * 
+         * @return  true, if interrupt has occurred; false, otherwise
+        */
+        bool update();
 
         /** @brief Configure sensor properties*/
         void configureSensor(SensorConfigurationPacket& config);

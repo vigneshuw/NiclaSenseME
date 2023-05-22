@@ -20,6 +20,14 @@ BoschSensortec::~BoschSensortec()
 
 }
 
+void *operator new (size_t n) {
+    void *const p = k_malloc(n);
+    return p;
+}
+
+void operator delete(void *p) {
+    k_free(p);
+}
 
 bool BoschSensortec::begin() {
     setup_interfaces(false, BHY2_SPI_INTERFACE);
@@ -119,14 +127,17 @@ int BoschSensortec::configureSensorRange(uint8_t id, uint16_t range) {
 }
 
 void BoschSensortec::getSensorConfiguration(uint8_t id, SensorConfig &virt_sensor_conf) {
+
     bhy2_get_virt_sensor_cfg(id, &virt_sensor_conf, &_bhy2);
 }
 
 uint8_t BoschSensortec::availableSensorData() {
+
     return !_sensorQueue.is_empty();
 }
 
 uint8_t BoschSensortec::availableLongSensorData() {
+
     return !_sensorLongQueue.is_empty();
 }
 
@@ -146,12 +157,18 @@ void BoschSensortec::addSensorData(SensorDataPacket *sensorData) {
     int ret = _sensorQueue.put(sensorData);
     if(ret)
         LOG_DBG("[FAIL] Data cannot be added to Circular BUffer %d\n", ret);
+
+    // Process the sensor data
+    sensorManager.process(*sensorData);
 }
 
 void BoschSensortec::addLongSensorData(SensorLongDataPacket *sensorData) {
     int ret = _sensorLongQueue.put(sensorData);
     if(ret)
         LOG_DBG("[FAIL] Data cannot be added to Circular BUffer %d\n", ret);
+
+    // Process the sensor data
+    sensorManager.process(*sensorData);
 }
 
 uint8_t BoschSensortec::acknowledgement() {
@@ -161,17 +178,20 @@ uint8_t BoschSensortec::acknowledgement() {
     return ack;
 }
 
-void BoschSensortec::update() {
+bool BoschSensortec::update() {
     if(get_interrupt_status()) {
         auto ret = bhy2_get_and_process_fifo(_workBuffer, WORK_BUFFER_SIZE, &_bhy2);
         LOG_DBG("ret - %s\n", get_api_error(ret));
+
+        return true;
     }
+
+    return false;
 }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #if BHY2_CFG_DELEGATE_FIFO_PARSE_CB_INFO_MGMT
 void bhy2_get_fifo_parse_callback_info_delegate(uint8_t sensor_id, 
                         struct bhy2_fifo_parse_callback_table *info,

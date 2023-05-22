@@ -11,6 +11,7 @@ extern "C" {
 
 class CircularBufferFIFO {
     public:
+        __attribute__ ((error("Circular Buffer requires a size"))) CircularBufferFIFO();
         CircularBufferFIFO(uint16_t size);     
         ~CircularBufferFIFO();
 
@@ -21,7 +22,7 @@ class CircularBufferFIFO {
          * @return  0, if success;  -ENOMEM, if there isn't sufficient RAM in the caller's resource pool
         */ 
         int put(void *data);
-        
+
         /** @brief Get data from the buffer by copy into the presented buffer. Once data is read, the memory is freed.
          * 
          * @param   data    Pointer to the data that is to be put in the buffer
