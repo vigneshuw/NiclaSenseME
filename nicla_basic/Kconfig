@@ -1,4 +1,4 @@
-mainmenu "littlefs"
+mainmenu "sentinel"
 
 config APP_WIPE_STORAGE
     bool "Option to clear the flash area before mounting"
