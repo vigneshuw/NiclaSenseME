@@ -146,16 +146,51 @@ class RGBled {
   public:
     RGBled() {};
 
+    /** @brief Begin the RGB LED IC*/
     void begin();
+
+    /** @brief Stop the RGB LED IC*/
     void end();
+
+    /** @brief Set LED RGB color as enumeration
+     * 
+     * @param color         The RGBColors enumeration
+     * 
+    */
     void setColor(RGBColors color);
+
+    /** @brief Set LED RGB color individually 
+     * 
+     * @param red           Set the red value
+     * @param green         Set the green value
+     * @param blue          Set the blue value
+    */
     void setColor(uint8_t red, uint8_t green, uint8_t blue);
 
+    /** @brief Set the color Blue 
+     * 
+     * @param blue          Set the blue value
+    */
     void setColorBlue(uint8_t blue=0xFF);
+
+    /** @brief Set the color red 
+     * 
+     * @param red           Set the red value
+    */
     void setColorRed(uint8_t red=0xFF);
+
+    /** @brief Set the color green
+     * 
+     * @param green         Set the green value
+    */
     void setColorGreen(uint8_t green=0xFF);
 
     /* intensity from 1 (lowest) to 8 (full) */
+    /** @brief Set the intensity value 
+     * 
+     * @param power         Set the power value. Ranges from 1 to 8.
+     * 
+    */
     void setIntensity(uint8_t power) {
       scale_factor = 8 - power;
       if (scale_factor < 0) {
@@ -165,14 +200,64 @@ class RGBled {
 
   
   private:
+
+    /** @brief Initialize the RGB LED system
+     * 
+    */
     void init();
+
+    /** @brief Get the ID of the chip 
+     * 
+     * @param buf         Buffer for the data that is read.
+     * @param num_bytes   Number of bytes to be read.
+    */
     void getChipID(uint8_t* buf, uint32_t num_bytes);
+
+    /** @brief Reset the RGB LED IC
+     * 
+    */
     void reset();
+
+    /** @brief Power down the RGB LED IC
+     * 
+    */
     void powerDown();
+
+    /** @brief Power up the RGB LED IC
+     * 
+    */
     void powerUp();
+
+    /** @brief Blink an LED once for a set delay duration
+     * 
+     * @param color         Color to set the RGB LED IC
+     * @param duration      Duration of blinking
+    */
     void ledBlink(RGBColors color, uint32_t duration);
+
+    /** @brief Write a byte over I2C
+     * 
+     * @param subAddress          Address to send over the I2C line to identify the register
+     * @param data                The 8-bit data that is to be written
+     * 
+     * @note  No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
+    */
     void writeByte(uint8_t subAddress, uint8_t data);
+
+    /** @brief Read a byte over I2C
+     * 
+     * @param subAddress          Address to send over the I2C line to identify the register
+     * @param read_buf            Buffer where the read data is to be placed
+     * @param num_bytes           Number of bytes to read from the device one after the other
+     * 
+     * @note  No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
+    */
     void readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes);
+
+    /** @brief Create a log output based on ret
+     * 
+     * @param ret         The ret value. A warning is raised if ret != 0
+    */
     void log_info(int ret);
 
     uint8_t _blue;

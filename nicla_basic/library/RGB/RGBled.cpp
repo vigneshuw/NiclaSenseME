@@ -12,10 +12,6 @@ LOG_MODULE_REGISTER(MD_RGBled, CONFIG_SET_LOG_LEVEL);
 // RGBled device structure
 static const struct i2c_dt_spec RGBled_i2c0 = I2C_DT_SPEC_GET(I2C0_RGBled);
 
-/*
-Public Methods
-*/
-// Begin the RGB LED
 void RGBled::begin() {
 
     reset();
@@ -24,14 +20,11 @@ void RGBled::begin() {
 
 }
 
-
-// End the RGB LED
 void RGBled::end() {
 
     powerDown();
 
 }
-
 
 void RGBled::setColor(RGBColors color) {
     
@@ -82,7 +75,6 @@ void RGBled::setColor(RGBColors color) {
 
 }
 
-
 void RGBled::setColorBlue(uint8_t blue) {
 
     // Blue LED
@@ -90,7 +82,6 @@ void RGBled::setColorBlue(uint8_t blue) {
     writeByte(IS31FL3194_COLOR_UPDATE, 0xC5);
 
 }
-
 
 void RGBled::setColorRed(uint8_t red) {
 
@@ -100,7 +91,6 @@ void RGBled::setColorRed(uint8_t red) {
 
 }
 
-
 void RGBled::setColorGreen(uint8_t green) {
 
     // Green LED
@@ -108,7 +98,6 @@ void RGBled::setColorGreen(uint8_t green) {
     writeByte(IS31FL3194_COLOR_UPDATE, 0xC5);
 
 }
-
 
 void RGBled::setColor(uint8_t red, uint8_t green, uint8_t blue) {
 
@@ -128,15 +117,10 @@ void RGBled::ledBlink(RGBColors color, uint32_t duration) {
 
 }
 
-
-/*
-Private Methods
-*/
 void RGBled::reset() {
     
     writeByte(IS31FL3194_RESET, 0xC5);
 }
-
 
 void RGBled::init() {
 
@@ -146,7 +130,6 @@ void RGBled::init() {
     writeByte(IS31FL3194_HOLD_FUNCTION, 0x00); // hold function disable
 
 }
-
 
 void RGBled::powerUp() {
 
@@ -174,20 +157,6 @@ void RGBled::getChipID(uint8_t* buf, uint32_t num_bytes) {
 
 }
 
-
-/*
-I2C Operations
-*/
-/*
-@brief Writes a byte over I2C.
-
-@note No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
-
-@param subAddress      ->      Address to send over the I2C line to identify the register
-@param data            ->      The 8-bit data that is to be written
-
-@return None
-*/
 void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
 
     // Check for device readiness
@@ -202,17 +171,6 @@ void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
     log_info(ret);
 }
 
-
-/*
-@brief Reads a byte over I2C
-@note  No need to send the address of the device. It is taken care by the DT and initialized from the DT overlay
-
-@param subAddress      ->      Address to send over the I2C line to identify the register
-@param read_buf        ->      Buffer where the read data is to be placed
-@param num_bytes       ->      Number of bytes to read from the device one after the other
-
-@returns None
-*/
 void RGBled::readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes) {
     // Check for device readiness
     if(!device_is_ready(RGBled_i2c0.bus)) {
@@ -226,10 +184,6 @@ void RGBled::readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes)
 
 }
 
-
-/*
-Miscellaneous
-*/
 void RGBled::log_info(int ret) {
     if (ret != 0) {
         LOG_WRN("I2C has failed\n");
