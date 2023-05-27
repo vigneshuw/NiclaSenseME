@@ -4,7 +4,7 @@
 #include <zephyr/types.h>
 #include <zephyr/fs/fs.h>
 
-#include "NiclaSystem.hpp"
+#include "SPIFLASH/MX25R1635F.hpp"
 
 #define PARTITION_NODE              DT_NODELABEL(lfs1)
 
@@ -37,7 +37,7 @@ class DFUManager{
         DFUManager();
         virtual ~DFUManager();
 
-        /** @brief Initialize and mount the littlefs file system 
+        /** @brief Initialize and mount the littlefs file system. Set file names 
          * 
          * @return true, file system mounted and readable; false, file sytem unmountable ro unreadable
          * 
@@ -46,22 +46,35 @@ class DFUManager{
 
         void processPacket(DFUType dfuType, const uint8_t *data);
 
+        /** @brief Ensures the FW update is complete */
         void closeDfu();
 
+        /** @brief Check the status of device firmware transfer 
+         * 
+         * @return  true, if transfer is on-going; false, if NO transfer is on-going
+        */
         bool isPending();
 
+        /** @brief Get the acknowledgement for transfer and then reset it
+         * 
+         * @return  DFUAck or DFUNack
+        */
         uint8_t acknowledgement();
 
     private:
-
+        /** @brief Packet write on littlefs file system update*/
         uint8_t _acknowledgement;
+        /** @brief State of the transfer. 0x0F, if a transfer is on-going; 0x00, if there is not transfer*/
         bool _transferPending;
 
-        char _dfu_internal_fname[MAX_PATH_LENGTH];
-        char _dfu_external_fname[MAX_PATH_LENGTH];
+        // File paths
+        char _dfu_internal_fpath[MAX_PATH_LENGTH];
+        char _dfu_external_fpath[MAX_PATH_LENGTH];
+        // File names
+        const char *_dfu_internal_fname = "NRF52_UPDATE.BIN";
+        const char *_dfu_external_fname = "BHY_UPDATE.BIN";
 
     private:
-
         friend class BHY2;
 
 };

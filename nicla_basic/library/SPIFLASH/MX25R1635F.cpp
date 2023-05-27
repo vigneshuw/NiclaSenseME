@@ -8,6 +8,16 @@
 LOG_MODULE_REGISTER(MX25R1635F, LOG_LEVEL_INF);
 
 
+MX25R1635F::MX25R1635F() 
+{
+
+}
+
+MX25R1635F::~MX25R1635F()
+{
+
+}
+
 int MX25R1635F::lsdir(const char* path) {
     int res;
     struct fs_dir_t dirp;
@@ -301,3 +311,5 @@ out:
     return (rc < 0 ? rc : 0);
 
 }
+
+MX25R1635F spiFlash;

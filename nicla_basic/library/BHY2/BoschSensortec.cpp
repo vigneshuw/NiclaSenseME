@@ -5,7 +5,7 @@
 #include <zephyr/kernel.h>
 
 
-LOG_MODULE_REGISTER(BoschSensortech, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(MBoschSensortec, CONFIG_SET_LOG_LEVEL);
 
 
 BoschSensortec::BoschSensortec() :

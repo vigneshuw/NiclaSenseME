@@ -1,8 +1,12 @@
 #include "BHY2.h"
 
+#include <zephyr/logging/log.h>
 #include "BoschSensortec.h"
 #include "BoschParser.h"
 #include "NiclaSystem.hpp"
+
+
+LOG_MODULE_REGISTER(MD_BHY2, CONFIG_SET_LOG_LEVEL);
 
 
 BHY2::BHY2() : 

@@ -4,7 +4,7 @@
 #include "BLE.h"
 
 
-LOG_MODULE_REGISTER(BLE, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(MD_BLE, CONFIG_SET_LOG_LEVEL);
 
 static struct ns_cb bt_cb_funcs;
 

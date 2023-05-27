@@ -61,7 +61,7 @@ class BLEHandler {
         /** @brief Set configuration for a sensor over BLE 
          * 
          * @param   buf                     Pointer to the BLE data buffer
-         * #param   len                     Number of bytes transferred over BLE
+         * @param   len                     Number of bytes transferred over BLE
         */
         static void processSensorConfig(const void *buf, uint16_t len);
 

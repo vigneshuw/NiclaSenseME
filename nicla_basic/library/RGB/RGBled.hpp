@@ -1,6 +1,7 @@
 #ifndef _RGBled_H_
 #define _RGBled_H_
 
+#include <zephyr/types.h>
 
 /*
 Register Map

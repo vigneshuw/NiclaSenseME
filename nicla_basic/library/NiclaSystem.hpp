@@ -4,7 +4,6 @@
 #include <zephyr/kernel.h>
 #include "RGB/RGBled.hpp"
 #include "PMIC/BQ25120A.hpp"
-#include "SPIFLASH/MX25R1635F.hpp"
 
 
 #define BATTERY_COLD        (1 << 4)
@@ -18,9 +17,6 @@ class nicla{
         // I2C devices
         static RGBled leds;
         static BQ25120A pmic;
-
-        // SPI devices
-        static MX25R1635F spiFLash;
 
         // File System
         int initialize_file_system(void);

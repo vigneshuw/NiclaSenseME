@@ -5,7 +5,7 @@
 
 
 // Logging
-LOG_MODULE_REGISTER(BoschParser, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(MBoschParser, CONFIG_SET_LOG_LEVEL);
 
 void BoschParser::convertTime(uint64_t time_ticks, uint32_t *s, uint32_t *ns) {
     uint64_t timestamp = time_ticks;

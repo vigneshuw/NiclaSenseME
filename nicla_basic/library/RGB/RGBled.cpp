@@ -1,14 +1,13 @@
-#include <zephyr/kernel.h>
+#include "RGBled.hpp"
+
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/logging/log.h>
-
-#include "RGBled.hpp"
 
 
 #define I2C0_RGBled DT_NODELABEL(rgbled)
 
 
-LOG_MODULE_REGISTER(RGBled, LOG_LEVEL_WRN);
+LOG_MODULE_REGISTER(MD_RGBled, CONFIG_SET_LOG_LEVEL);
 
 // RGBled device structure
 static const struct i2c_dt_spec RGBled_i2c0 = I2C_DT_SPEC_GET(I2C0_RGBled);
