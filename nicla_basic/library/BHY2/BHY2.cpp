@@ -4,9 +4,10 @@
 #include "BoschSensortec.h"
 #include "BoschParser.h"
 #include "NiclaSystem.hpp"
+#include "BLEHandler.h"
 
 
-LOG_MODULE_REGISTER(MD_BHY2, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(BHY2_SYSTEM, CONFIG_SET_LOG_LEVEL);
 
 
 BHY2::BHY2() : 
@@ -33,12 +34,28 @@ bool BHY2::begin() {
     // Initialize the Sensor System
     res = sensortec.begin() & res;
 
+    // Init BLE System
+    res = bleHandler.begin() & res;
+
+    // Init DFUManager
+    res = dfuManager.begin() & res; 
+
     return res;
 
 }
 
 void BHY2::update() {
     sensortec.update();
+
+    // FW transfer status 
+    if (dfuManager.isPending()) {
+        LOG_DBG("Stopping the execution of thread until FW Update is complete\n");
+        while(dfuManager.isPending()) {
+            k_msleep(1000);
+        }
+
+        LOG_DBG("Firmware transfer complete.");
+    }
 }
 
 void BHY2::update(unsigned long ms) {

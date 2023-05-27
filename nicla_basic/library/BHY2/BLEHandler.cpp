@@ -22,8 +22,23 @@ static const struct bt_data sd[] = {
     BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123))
 };
 
+/*
+Initialize Static variables
+*/
+bool BLEHandler::_lastDFUPack = false;
+bool BLEHandler::bleActive = false;
+struct ns_cb BLEHandler::app_callbacks = {
+    .firmware_data_cb = processDFUPacket,
+    .sensor_config_cb = processSensorConfig
+};
+struct bt_conn_cb BLEHandler::conn_callbacks = {
+    .connected = on_connected,
+    .disconnected = on_disconnected
+};
 
-BLEHandler::BLEHandler() : bleActive(false) {
+
+
+BLEHandler::BLEHandler() {
 
 }
 
@@ -33,20 +48,16 @@ BLEHandler::~BLEHandler()
 }
 
 bool BLEHandler::begin() {
+
+    // Prevent multiple calls to begin
+    if(bleActive) {
+        LOG_DBG("BLE is already active! End it to begin\n");
+        return false;
+    }
+
     /*
     BLE Connection
     */
-    // Write/Read callbacks
-    app_callbacks = {
-        .firmware_data_cb = processDFUPacket,
-        .sensor_config_cb = processSensorConfig
-    };
-    // Connect/Disconnect callbacks
-    conn_callbacks = {
-        .connected = on_connected,
-        .disconnected = on_disconnected
-
-    };
     // Registering the callbacks
     int err;
     bt_conn_cb_register(&conn_callbacks);

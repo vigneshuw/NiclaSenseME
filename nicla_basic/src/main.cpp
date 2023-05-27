@@ -1,14 +1,4 @@
-#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/fs/fs.h>
-
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/gap.h>
-#include <zephyr/bluetooth/conn.h>
-#include <zephyr/bluetooth/uuid.h>
-
-#include <stdio.h>
-#include <string.h>
 
 #include "NiclaSystem.hpp"
 #include "BHY2.h"
@@ -40,7 +30,6 @@ int main(void) {
     while (1) {
         
         bhy2.update(1000);
-
         printk("X-%d, Y-%d, Z-%d\n", accel.x(), accel.y(), accel.z());
 
     }

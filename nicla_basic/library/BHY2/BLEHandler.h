@@ -19,22 +19,22 @@ class BLEHandler {
          * @return  true, Successful initialization of the BLE System; false, Failure in initialization of the BLE System
          * 
         */
-        bool begin();
+        static bool begin();
 
         /** @brief Transfer data over BLE
          * 
          *  @note   NOT IMPLEMENTED
         */
-        void update();
+        static void update();
 
         /** @brief End advertising and the BLE hardware
          * 
          * @return  true, on success; false, on failure.
         */
-        bool end();
+        static bool end();
 
         /** @brief Flag to indicate the BLE status */
-        bool bleActive = false;
+        static bool bleActive;
 
     private:
 
