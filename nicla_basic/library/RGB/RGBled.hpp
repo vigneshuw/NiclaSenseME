@@ -113,12 +113,12 @@ Register Map
 #define t_8_30s 0x0F
 
 // define pattern times
-#define TS t_2_10s  // Start time
-#define T1 t_2_10s  // Rise time
-#define T2 t_1_04s  // Hold time
-#define T3 t_2_10s  // Fall time
-#define T4 t_2_10s  // Off time
-#define TP t_2_10s  // Time between pulses
+#define _TS t_2_10s  // Start time
+#define _TR t_2_10s  // Rise time
+#define _TH t_1_04s  // Hold time
+#define _TF t_2_10s  // Fall time
+#define _TO t_2_10s  // Off time
+#define _TP t_2_10s  // Time between pulses
 
 // define cycle times
 #define endless 0x00
