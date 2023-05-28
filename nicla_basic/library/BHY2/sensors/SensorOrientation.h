@@ -16,30 +16,45 @@ class SensorOrientation : public SensorClass {
             }
         }
 
+        /** @brief Get the heading */
         float heading() {
             return _data.heading;
         }
-
+        
+        /** @brief Get the pitch */
         float pitch() {
             return _data.pitch;
         }
 
+        /** @brief Get the roll */
         float roll() {
             return _data.roll;
         }
 
+        /** @brief Set the scale factor
+         * @param   factor                  The scaling factor value
+        */
         void setFactor(float factor) {
             _factor = factor;
         }
 
+        /** @brief Get the scale factor 
+         * 
+         * @retval  The scaling factor
+        */
         float getFactor() {
             return _factor;
         }
 
+        /** @brief Set the data to the SensorClass 
+         * 
+         * @param   data                    Pointer to the sensor data packet
+        */
         void setData(SensorDataPacket &data) {
             DataParser::parseEuler(data, _data, _factor);
         }
 
+        /** @brief Set the data (Long data) to SensorClass. */
         void setData(SensorLongDataPacket &data) {}
 
 

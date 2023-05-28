@@ -34,10 +34,15 @@ class SensorQuaternion: public SensorClass {
             return _factor;
         }
 
+        /** @brief Set the data to the SensorClass 
+         * 
+         * @param   data                    Pointer to the sensor data packet
+        */
         void setData(SensorDataPacket &data) {
             DataParser::parseQuaternion(data, _data, _factor);
         }
 
+        /** @brief Set the data (Long data) to SensorClass. */
         void setData(SensorLongDataPacket &data) {}
 
 

@@ -8,7 +8,7 @@
 #define SENSOR_LONG_DATA_FIXED_LENGTH           (18)
 
 
-// Virtual Sensor for BHI260AP
+// Virtual Sensor Configuration struct for BHI260AP
 typedef bhy2_virt_sensor_conf SensorConfig;
 
 struct __attribute__ ((packed)) SensorConfigurationPacket {

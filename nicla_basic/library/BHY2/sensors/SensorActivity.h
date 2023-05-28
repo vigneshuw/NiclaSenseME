@@ -4,20 +4,34 @@
 #include "SensorClass.h"
 
 
+/** @brief SensorActivity class extends the SensorClass */
 class SensorActivity: public SensorClass {
     public:
         SensorActivity() {}
 
+        /** @brief Initialize Sensor Activity. Extends the SensorClass
+         * 
+         * @param   id                  The ID to initialize the sensor. Depends on the BHI260AP
+        */
         SensorActivity(uint8_t id) : SensorClass(id), _value(0) {}
 
+        /** @brief Get the value for the activity 
+         * 
+         * @retval  The value for the activity
+        */
         uint16_t value() {
             return _value;
         }
 
+        /** @brief Set the data to the Sensor Class
+         * 
+         * @param   data                    Pointer to the SensorDataPacket
+        */
         void setData(SensorDataPacket &data) {
             DataParser::parseActivity(data, _value);
         }
 
+        /** @brief Set the data to SensorLongDataPacket */
         void setData(SensorLongDataPacket &data) {}
 
 
