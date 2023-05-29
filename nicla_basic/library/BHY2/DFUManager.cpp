@@ -62,17 +62,23 @@ bool DFUManager::begin() {
     }
 
     // Set the file name
-    snprintf(_dfu_internal_fpath, sizeof(_dfu_internal_fname), "%s/%s", mp->mnt_point, _dfu_internal_fname);
-    snprintf(_dfu_external_fpath, sizeof(_dfu_external_fname), "%s/%s", mp->mnt_point, _dfu_external_fname);
+    snprintf(_dfu_internal_fpath, sizeof(_dfu_internal_fpath), "%s/%s", mp->mnt_point, _dfu_internal_fname);
+    snprintf(_dfu_external_fpath, sizeof(_dfu_external_fpath), "%s/%s", mp->mnt_point, _dfu_external_fname);
+
+    // Print the file names
+    LOG_DBG("Internal FW fpath %s\n", _dfu_internal_fpath);
+    LOG_DBG("External FW fpath %s\n", _dfu_external_fpath);
 
     return true;
 
 }
 
-void DFUManager::processPacket(DFUType dfuType, const uint8_t *data) {
+void DFUManager::processPacket(DFUType dfuType, const uint8_t *data, uint16_t len) {
     _transferPending = true;
 
     DFUPacket *packet = (DFUPacket *)data;
+    // Update len to reflect only the data
+    len = len - 5;
 
     LOG_DBG("Packet index -> %u\n", packet->index);
 
@@ -82,18 +88,30 @@ void DFUManager::processPacket(DFUType dfuType, const uint8_t *data) {
     if(packet->index == 0) {
         if(dfuType == DFU_INTERNAL) {
             spiFlash.littlefs_delete(mp->mnt_point, _dfu_internal_fname);
+            // Reset internal CRC
+            _crc_internal = 0x00;
         } else {
             spiFlash.littlefs_delete(mp->mnt_point, _dfu_external_fname);
+            // Reset external CRC
+            _crc_external = 0x00;
         }
     }
     // Write firmware to file system
-    // if (dfuType == DFU_INTERNAL) {
-    //     res = spiFlash.littlefs_binary_write(_dfu_internal_fpath, packet->data, 
-    //                             sizeof(packet->data), packet->index, false);
-    // } else {
-    //     res = spiFlash.littlefs_binary_write(_dfu_external_fpath, packet->data, 
-    //                             sizeof(packet->data), packet->index, false);
-    // }
+    if (dfuType == DFU_INTERNAL) {
+        res = spiFlash.littlefs_binary_write(_dfu_internal_fpath, packet->data, 
+                                len, packet->index, false);
+        // Compute CRC
+        for(int i = 0; i < len; i++) {
+            _crc_internal = _crc_internal ^ packet->data[i];
+        }
+    } else {
+        res = spiFlash.littlefs_binary_write(_dfu_external_fpath, packet->data, 
+                                len, packet->index, false);
+        // Compute CRC
+        for(int i = 0; i < len; i++) {
+            _crc_external = _crc_external ^ packet->data[i];
+        }
+    }
     // Acknowledgement for a single write
     if(res) _acknowledgement = DFUAck;
         else _acknowledgement = DFUNack;
@@ -111,6 +129,8 @@ bool DFUManager::isPending() {
 
 void DFUManager::closeDfu() {
     _transferPending = false;
+    // Print the CRC after data transfer
+    LOG_INF("The internal and external CRC are %u, and %u", _crc_internal, _crc_external);
 }
 
 uint8_t DFUManager::acknowledgement() {

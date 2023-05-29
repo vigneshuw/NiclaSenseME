@@ -111,12 +111,11 @@ void BLEHandler::update() {
 
 void BLEHandler::processDFUPacket(DFUType dfuType, const void *buf, uint16_t len) {
     
-    // Log the data params
     LOG_DBG("Size of data received: %u\n", len);
 
     // Process packet through DFU Manager
     const uint8_t *val = (const uint8_t *)buf;
-    dfuManager.processPacket(dfuType, val);
+    dfuManager.processPacket(dfuType, val, len);
 
     // Check for the last packet
     if(val[0]) {

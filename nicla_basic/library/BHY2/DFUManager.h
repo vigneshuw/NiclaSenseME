@@ -41,7 +41,7 @@ class DFUManager{
         */
         bool begin();
 
-        void processPacket(DFUType dfuType, const uint8_t *data);
+        void processPacket(DFUType dfuType, const uint8_t *data, uint16_t len);
 
         /** @brief Ensures the FW update is complete */
         void closeDfu();
@@ -63,6 +63,10 @@ class DFUManager{
         uint8_t _acknowledgement;
         /** @brief State of the transfer. 0x0F, if a transfer is on-going; 0x00, if there is not transfer*/
         bool _transferPending;
+
+        // CRC
+        uint8_t _crc_internal = 0x00;
+        uint8_t _crc_external = 0x00;
 
         // File paths
         char _dfu_internal_fpath[MAX_PATH_LENGTH];

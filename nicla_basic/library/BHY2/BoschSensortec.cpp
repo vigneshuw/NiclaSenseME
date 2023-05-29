@@ -181,8 +181,13 @@ uint8_t BoschSensortec::acknowledgement() {
 bool BoschSensortec::update() {
     if(get_interrupt_status()) {
         auto ret = bhy2_get_and_process_fifo(_workBuffer, WORK_BUFFER_SIZE, &_bhy2);
-        LOG_DBG("ret - %s\n", get_api_error(ret));
-
+        
+#if CONFIG_SET_LOG_LEVEL == 4
+        if(ret) {
+            LOG_DBG("ret - %s\n", get_api_error(ret));
+        }
+#endif
+        
         return true;
     }
 

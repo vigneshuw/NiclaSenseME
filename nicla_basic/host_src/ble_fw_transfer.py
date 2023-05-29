@@ -35,7 +35,7 @@ async def main(address, data):
         print(f"Total number of bytes {len(fw_var_uint8_t)}. Number of packets = {num_byte_packets}, Remainder packets = {rm_bytes}")
 
         # Transfer process
-        for index in range(num_byte_packets):
+        for index in tqdm(range(num_byte_packets)):
 
             # Indexing bounds
             start_index = int(index * transfer_bytes)
@@ -46,8 +46,6 @@ async def main(address, data):
                 if(rm_bytes == 0):
                     # Set the last packet
                     last_packet = 1
-
-            print(start_index)
 
             # Data buffer
             buf = fw_var_uint8_t[start_index:end_index]
