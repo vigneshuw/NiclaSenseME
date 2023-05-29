@@ -24,10 +24,7 @@ enum DFUAckCode {
 /** @brief The structure for the firmware data packet*/
 struct __attribute__((packed)) DFUPacket {
     uint8_t last: 1;
-    union {
-        uint16_t index: 15;
-        uint16_t remaining: 15;
-    };
+    uint32_t index;
     uint8_t data[200];
 };
 

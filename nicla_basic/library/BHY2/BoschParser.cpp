@@ -40,7 +40,7 @@ void BoschParser::parseData(const struct bhy2_fifo_parse_data_info *fifoData, vo
     }
 
     // Debugging
-    LOG_DBG("Sensor: %u, Size: %u", fifoData->sensor_id, fifoData->data_size);
+    //LOG_DBG("Sensor: %u, Size: %u", fifoData->sensor_id, fifoData->data_size);
 
 }
 

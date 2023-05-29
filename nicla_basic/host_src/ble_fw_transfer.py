@@ -9,39 +9,69 @@ from tqdm import tqdm
 from bleak import BleakClient
 from bleak.uuids import uuid16_dict
 
-ADDRESS = (
+# Device address
+BLE_ADDRESS = (
     "F4F465DA-1B01-2E80-97F2-F60573E277F4"
 )
 
-SERVICE = "00001523-1212-efde-1523-785feabcd123"
-READ_ID_UUID = "00001523-1213-efde-1523-785feabcd123"
-WRITE_ID_UUID = "00001523-1215-efde-1523-785feabcd123"
+# Firmware services
+DFU_SERVICE_UUID = "34c2e3b8-34aa-11eb-adc1-0242ac120002"
+DFU_INTERNAL_UUID = "34c2e3b8-34ab-11eb-adc1-0242ac120002"
+DFU_EXTERNAL_UUID = "34c2e3b8-34ac-11eb-adc1-0242ac120002"
 
 
 async def main(address, data):
     async with BleakClient(address, winrt=dict(use_cached_services=True)) as client:
         print(f"Connected: {client.is_connected}")
 
+        # Preamble for data
+        last_packet = 0
         buf = []
-        transfer_bytes = 240
-        for byte_val in tqdm(fw_var_uint8_t):
-            if(len(buf) < transfer_bytes):
-                buf.append(byte_val)
-                continue
-            buf.append(byte_val)
-            await client.write_gatt_char(WRITE_ID_UUID, struct.pack( "<" + "B" * (transfer_bytes + 1), *buf), response=True)
-            buf = []
+        transfer_bytes = 200
 
-        if (len(buf) != 0):
-            await client.write_gatt_char(WRITE_ID_UUID, struct.pack( "<" + "B" * len(buf), *buf), response=True)
+        # Packet information
+        num_byte_packets = int(len(fw_var_uint8_t) / transfer_bytes)
+        rm_bytes = len(fw_var_uint8_t) % transfer_bytes
+        print(f"Total number of bytes {len(fw_var_uint8_t)}. Number of packets = {num_byte_packets}, Remainder packets = {rm_bytes}")
 
+        # Transfer process
+        for index in range(num_byte_packets):
 
-        time.sleep(10)
+            # Indexing bounds
+            start_index = int(index * transfer_bytes)
+            end_index = int(start_index + transfer_bytes)
+
+            # When reaching the last byte group
+            if index == (num_byte_packets - 1):
+                if(rm_bytes == 0):
+                    # Set the last packet
+                    last_packet = 1
+
+            print(start_index)
+
+            # Data buffer
+            buf = fw_var_uint8_t[start_index:end_index]
+            await client.write_gatt_char(DFU_EXTERNAL_UUID, struct.pack( "<BL" + "B" * (transfer_bytes), last_packet, start_index, *buf), response=True)
+
+        # Incase there are remainder bytes
+        if rm_bytes != 0:
+            
+            # Get the indexes
+            start_index = int(end_index)
+            end_index = int(start_index + rm_bytes
+)
+            print(start_index)
+            print(end_index)
+
+            # Data buffer
+            buf = fw_var_uint8_t[start_index:end_index]
+            last_packet = 1
+            await client.write_gatt_char(DFU_EXTERNAL_UUID, struct.pack( "<BI" + "B" * rm_bytes, last_packet, start_index, *buf), response=True)
 
 if __name__ == "__main__":
 
     # Get the file path
-    file_path = os.path.join(os.getcwd(), "firmware", "fw.h")
+    file_path = os.path.join(os.getcwd(), "host_src", "firmware", "fw.h")
 
     # Read the file data
     with open(file_path, "r") as file_handle:
@@ -83,6 +113,4 @@ if __name__ == "__main__":
         crc = crc ^ val
     print(f"The Computed CRC is {crc}")
 
-
-
-    asyncio.run(main(ADDRESS, fw_var_uint8_t))     
+    asyncio.run(main(BLE_ADDRESS, fw_var_uint8_t))     

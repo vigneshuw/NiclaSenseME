@@ -87,20 +87,20 @@ void DFUManager::processPacket(DFUType dfuType, const uint8_t *data) {
         }
     }
     // Write firmware to file system
-    if (dfuType == DFU_INTERNAL) {
-        res = spiFlash.littlefs_binary_write(_dfu_internal_fpath, packet->data, 
-                                sizeof(packet->data), packet->index, false);
-    } else {
-        res = spiFlash.littlefs_binary_write(_dfu_external_fpath, packet->data, 
-                                sizeof(packet->data), packet->index, false);
-    }
+    // if (dfuType == DFU_INTERNAL) {
+    //     res = spiFlash.littlefs_binary_write(_dfu_internal_fpath, packet->data, 
+    //                             sizeof(packet->data), packet->index, false);
+    // } else {
+    //     res = spiFlash.littlefs_binary_write(_dfu_external_fpath, packet->data, 
+    //                             sizeof(packet->data), packet->index, false);
+    // }
     // Acknowledgement for a single write
     if(res) _acknowledgement = DFUAck;
         else _acknowledgement = DFUNack;
 
     // If the packet is the last
     if(packet->last) {
-        LOG_DBG("Last packet received. Remaining: %u\n", packet->remaining);
+        LOG_DBG("Last packet received. Remaining: %u\n", packet->index);
     }
 
 }
