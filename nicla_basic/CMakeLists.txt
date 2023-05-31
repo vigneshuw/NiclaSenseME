@@ -7,11 +7,11 @@ project(nicla_basic)
 
 # includes
 include_directories(library)
-include_directories(library/BHY2)
+# include_directories(library/BHY2)
 
 # Source files
 # file(GLOB_RECURSE BHY2_C_SRC CONFIGURE_DEPENDS "library/BHY2/**.c" "library/BHY2/**.cpp")
-file(GLOB_RECURSE LIB CONFIGURE_DEPENDS "library/**.c" "library/**.cpp")
+# file(GLOB_RECURSE LIB CONFIGURE_DEPENDS "library/**.c" "library/**.cpp")
 
 target_sources(app PRIVATE src/main.cpp)
 # target_sources(app PRIVATE library/BLE/NiclaService.cpp)

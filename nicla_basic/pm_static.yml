@@ -1,0 +1,10 @@
+external_flash:
+  address: 0x0
+  end_address: 0x200000
+  region: external_flash
+  size: 0x200000
+littlefs_storage:
+  address: 0x0
+  device: MX25R1635F
+  region: external_flash
+  size: 0x200000
