@@ -31,6 +31,7 @@
     "new": "cpp",
     "ostream": "cpp",
     "stdexcept": "cpp",
-    "streambuf": "cpp"
+    "streambuf": "cpp",
+    "flash_img.h": "c"
   }
 }
