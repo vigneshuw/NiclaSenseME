@@ -7,10 +7,6 @@
 LOG_MODULE_REGISTER(main, CONFIG_SET_LOG_LEVEL);
 
 
-// Acceleration sensor
-SensorXYZ accel(SENSOR_ID_ACC_PASS);
-
-
 int main(void) {
 
     /*
@@ -22,15 +18,13 @@ int main(void) {
     if(!ret) {
         LOG_ERR("3V3LDO failed!\n");
     }
-    
+
     // Initialize
     bhy2.begin();
-    accel.begin(400.0, 0);
 
     while (1) {
         
-        bhy2.update(1000);
-        printk("X-%d, Y-%d, Z-%d\n", accel.x(), accel.y(), accel.z());
+        k_msleep(10000);
 
     }
 

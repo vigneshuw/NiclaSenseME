@@ -7,7 +7,7 @@
 #define I2C0_RGBled DT_NODELABEL(rgbled)
 
 
-LOG_MODULE_REGISTER(MD_RGBled, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(RGBLed, CONFIG_SET_LOG_LEVEL);
 
 // RGBled device structure
 static const struct i2c_dt_spec RGBled_i2c0 = I2C_DT_SPEC_GET(I2C0_RGBled);
@@ -161,7 +161,7 @@ void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
 
     // Check for device readiness
     if(!device_is_ready(RGBled_i2c0.bus)) {
-        printk("Warning! Device is not ready!\n\r");
+        LOG_WRN("Device is not ready!\n\r");
     }
 
     // Transfer buffer
@@ -174,7 +174,7 @@ void RGBled::writeByte(uint8_t subAddress, uint8_t data) {
 void RGBled::readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes) {
     // Check for device readiness
     if(!device_is_ready(RGBled_i2c0.bus)) {
-        printk("Warning! Device is not ready!\n\r");
+        LOG_WRN("Device is not ready!\n\r");
     }
 
     uint8_t write_buf[] = {subAddress};
@@ -187,8 +187,6 @@ void RGBled::readByte(uint8_t subAddress, uint8_t* read_buf, uint32_t num_bytes)
 void RGBled::log_info(int ret) {
     if (ret != 0) {
         LOG_WRN("I2C has failed\n");
-    } else {
-        LOG_INF("I2C communication successful\n");
     }
 }
 

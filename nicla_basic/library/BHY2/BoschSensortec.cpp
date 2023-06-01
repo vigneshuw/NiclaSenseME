@@ -5,7 +5,7 @@
 #include <zephyr/kernel.h>
 
 
-LOG_MODULE_REGISTER(MBoschSensortec, CONFIG_SET_LOG_LEVEL);
+LOG_MODULE_REGISTER(Sensortec, CONFIG_SET_LOG_LEVEL);
 
 
 BoschSensortec::BoschSensortec() :
@@ -40,7 +40,8 @@ bool BoschSensortec::begin() {
     // Boot status
     uint8_t stat = 0;
     ret = bhy2_get_boot_status(&stat, &_bhy2);
-    LOG_DBG("ret = %s; Boot Status: %X\n", get_api_error(ret), stat);
+    if(ret)
+        LOG_DBG("ret = %s; Boot Status: %X\n", get_api_error(ret), stat);
 
     // Boot from flash
     ret = bhy2_boot_from_flash(&_bhy2);
@@ -49,15 +50,18 @@ bool BoschSensortec::begin() {
 
     // Boot status
     ret = bhy2_get_boot_status(&stat, &_bhy2);
-    LOG_DBG("ret = %s; Boot Status: %X\n", get_api_error(ret), stat);
+    if(ret)
+        LOG_DBG("ret = %s; Boot Status: %X\n", get_api_error(ret), stat);
 
     // Host interrupt ctrl
     ret = bhy2_get_host_interrupt_ctrl(&stat, &_bhy2);
-    LOG_DBG("ret = %s; Host interrupt ctrl register: %X\n", get_api_error(ret), stat);
+    if(ret)
+        LOG_DBG("ret = %s; Host interrupt ctrl register: %X\n", get_api_error(ret), stat);
 
     // Host interface ctrl
     ret = bhy2_get_host_intf_ctrl(&stat, &_bhy2);
-    LOG_DBG("ret = %s; Host interface ctrl register: %X\n", get_api_error(ret), stat);
+    if(ret)
+        LOG_DBG("ret = %s; Host interface ctrl register: %X\n", get_api_error(ret), stat);
 
     // FIFO parse callbacks for meta events
     bhy2_register_fifo_parse_callback(BHY2_SYS_ID_META_EVENT, BoschParser::parseMetaEvent, NULL, &_bhy2);
@@ -66,7 +70,8 @@ bool BoschSensortec::begin() {
 
     // Data buffer for FIFO
     ret = bhy2_get_and_process_fifo(_workBuffer, WORK_BUFFER_SIZE, &_bhy2);
-    LOG_DBG("ret = %s; Processing data buffer for FIFO\n", get_api_error(ret));
+    if(ret)
+        LOG_DBG("ret = %s; Processing data buffer for FIFO\n", get_api_error(ret));
 
     // FIFO parse callback for sensor data
     for(uint8_t i = 1; i < BHY2_SENSOR_ID_MAX; i++) {
@@ -78,7 +83,7 @@ bool BoschSensortec::begin() {
     // Available virtual sensors
     bhy2_get_virt_sensor_list(_sensorsPresent, &_bhy2);
 
-    printSensors();
+    // printSensors();
 
     return 0;
 
