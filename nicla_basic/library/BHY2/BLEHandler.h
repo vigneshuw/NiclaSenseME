@@ -53,6 +53,8 @@ class BLEHandler {
         */
         static void processDFUPacket(DFUType dfuType, const void *buf, uint16_t len);
 
+        static void writeDFUFirmwareToFlash(DFUType dfuType);
+
         /** @brief Callback when the central is connected */
         static void on_connected(struct bt_conn *conn, uint8_t err);
         /** @brief Callback when the central is disconnected */

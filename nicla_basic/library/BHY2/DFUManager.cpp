@@ -1,8 +1,10 @@
 #include <zephyr/logging/log.h>
+#include <zephyr/dfu/mcuboot.h>
 #include <stdio.h>
 
 #include "DFUManager.h"
 #include "BLEHandler.h"
+#include "Flash/FlashFirmwareWrite.h"
 
 
 LOG_MODULE_REGISTER(MDFUManager, CONFIG_SET_LOG_LEVEL);
@@ -121,6 +123,80 @@ void DFUManager::processPacket(DFUType dfuType, const uint8_t *data, uint16_t le
         LOG_DBG("Last packet received. Remaining: %u\n", packet->index);
     }
 
+}
+
+int DFUManager::writeFirmwareToFlash(DFUType dfuType) {
+
+    // Initialize IMG struct
+    int rc = flash_img_init_id(&flash_ctx, UPLOAD_FLASH_AREA_ID);
+    if(rc) {
+        LOG_ERR("Flash img context cannot be initialized, rc = %d\n", rc);
+    }
+
+    if(dfuType == DFU_INTERNAL) {
+        // Firmware size and params
+        size_t fw_len;
+        rc = spiFlash.get_file_size(_dfu_internal_fpath, &fw_len);
+        if(rc || (fw_len == 0)) {
+            LOG_ERR("The FW file [%s] does not exist\n", _dfu_internal_fpath);
+            return rc;
+        }
+
+        // Allocate for read data
+        uint32_t num_chunks = fw_len / CHUNK_SIZE;
+        uint32_t num_chunks_remain = fw_len % CHUNK_SIZE;
+        // Buf space
+        uint8_t *buf = (uint8_t *) k_malloc(CHUNK_SIZE);
+        memset(buf, 0, CHUNK_SIZE);
+
+        // Write to device secondary flash
+        size_t indexer = 0;
+        for(size_t i = 0; i < num_chunks; i++) {
+            indexer = i * 512;
+            // Read from external flash
+            spiFlash.littlefs_binary_read(_dfu_internal_fpath, buf, CHUNK_SIZE, indexer);
+            if((num_chunks_remain == 0) && (i == (num_chunks - 1))) {
+                rc = flash_img_buffered_write(&flash_ctx, buf, CHUNK_SIZE, true);
+            } else {
+                rc = flash_img_buffered_write(&flash_ctx, buf, CHUNK_SIZE, false);
+            }
+            // On Flash write fail
+            if (rc)
+                return rc;
+
+        }
+        // If there are remaining bytes
+        if(num_chunks_remain != 0) {
+            indexer += 512;
+            memset(buf, 0, CHUNK_SIZE);
+            spiFlash.littlefs_binary_read(_dfu_internal_fpath, buf, num_chunks_remain, indexer);
+            rc = flash_img_buffered_write(&flash_ctx, buf, num_chunks_remain, true);
+            if(rc)
+                return rc;
+        }
+
+        // Free the buffer
+        k_free(buf);
+
+        // Check the number of bytes written
+        indexer = flash_img_bytes_written(&flash_ctx);
+        if(indexer != fw_len) {
+            LOG_ERR("Actual FW length and written length does not match!\n");
+            return -1;
+        }
+
+        // Boot upgrade request
+        rc = boot_request_upgrade(BOOT_UPGRADE_TEST);
+        if(rc) {
+            LOG_ERR("Boot upgrade request has failed\n");
+            return rc;
+        }
+    } else {
+        LOG_WRN("DFU_EXTERNAL is not implemented!\n");
+        return -2;
+    }
+
+    return 0;
 }
 
 bool DFUManager::isPending() {

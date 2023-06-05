@@ -60,6 +60,40 @@ int MX25R1635F::lsdir(const char* path) {
 }
 
 
+int MX25R1635F::get_file_size(const char *file_path, size_t *file_size) {
+    int res;
+    struct fs_dirent entry;
+
+    // File stat
+    res = fs_stat(file_path, &entry);
+    if(res) {
+        switch (res)
+        {
+        case -EINVAL:
+            LOG_ERR("Bad file name given\n");
+            break;
+
+        case -ENOENT:
+            LOG_ERR("File does not exist\n");
+            break;
+
+        case -ENOTSUP:
+            LOG_ERR("Underlying file system driver not supported\n");
+            break;
+        
+        default:
+            LOG_ERR("Unknown error, rc = %d\n", res);
+            break;
+        }
+
+        return res;
+    }
+
+    *file_size = entry.size;
+    return res;
+}
+
+
 int MX25R1635F::littlefs_binary_read(char* fname, void* buf, size_t num_bytes, size_t offset) {
 
     struct fs_file_t file;

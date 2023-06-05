@@ -20,6 +20,8 @@ class MX25R1635F {
         */
         static int lsdir(const char *path);
 
+        static int get_file_size(const char *path, size_t *file_size);
+
         /** @brief Can increase the count of a 32 bit variable specified by the file name
          * 
          * @param   fname               The file name for the file containing the 32-bit variable

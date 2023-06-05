@@ -29,7 +29,8 @@ bool BLEHandler::_lastDFUPack = false;
 bool BLEHandler::bleActive = false;
 struct ns_cb BLEHandler::app_callbacks = {
     .firmware_data_cb = processDFUPacket,
-    .sensor_config_cb = processSensorConfig
+    .sensor_config_cb = processSensorConfig,
+    .firmware_update_cb = writeDFUFirmwareToFlash
 };
 struct bt_conn_cb BLEHandler::conn_callbacks = {
     .connected = on_connected,
@@ -123,6 +124,17 @@ void BLEHandler::processDFUPacket(DFUType dfuType, const void *buf, uint16_t len
         dfuManager.closeDfu();
     }
 
+}
+
+void BLEHandler::writeDFUFirmwareToFlash(DFUType dfuType) {
+    LOG_DBG("Firmware write has been initialized\n");
+
+    int rc = dfuManager.writeFirmwareToFlash(dfuType);
+    if(rc) {
+        LOG_ERR("The Firmware write has failed\n");
+    } else {
+        LOG_DBG("Firmware has been successfully written!\n");
+    }
 }
 
 void BLEHandler::on_connected(struct bt_conn *conn, uint8_t err) {

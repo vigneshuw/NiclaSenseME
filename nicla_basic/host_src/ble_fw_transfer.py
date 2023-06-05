@@ -49,7 +49,7 @@ async def main(address, data):
 
             # Data buffer
             buf = fw_var_uint8_t[start_index:end_index]
-            await client.write_gatt_char(DFU_EXTERNAL_UUID, struct.pack( "<BL" + "B" * (transfer_bytes), last_packet, start_index, *buf), response=True)
+            await client.write_gatt_char(DFU_UUID, struct.pack( "<BL" + "B" * (transfer_bytes), last_packet, start_index, *buf), response=True)
 
         # Incase there are remainder bytes
         if rm_bytes != 0:
@@ -64,12 +64,32 @@ async def main(address, data):
             # Data buffer
             buf = fw_var_uint8_t[start_index:end_index]
             last_packet = 1
-            await client.write_gatt_char(DFU_EXTERNAL_UUID, struct.pack( "<BI" + "B" * rm_bytes, last_packet, start_index, *buf), response=True)
+            await client.write_gatt_char(DFU_UUID, struct.pack( "<BI" + "B" * rm_bytes, last_packet, start_index, *buf), response=True)
 
 if __name__ == "__main__":
 
     # Get the file path
-    file_path = os.path.join(os.getcwd(), "host_src", "firmware", "fw.h")
+    file_path = os.path.join(os.getcwd(), "host_src", "firmware")
+
+    # Select the type of firmware
+    while True:
+        fw_selection = int(input("Select the type of FW to Upload\n\t0 - Internal\n\t1 - External\n:"))
+        if fw_selection == 0 or fw_selection == 1:
+            break
+        else:
+            print("Incorrect Choice. Try again!")
+    # Based on selection
+    if fw_selection == 0:
+        file_path = os.path.join(file_path, "nRF52", "nicla_fw.h")
+        DFU_UUID = DFU_INTERNAL_UUID
+        data_var_name = "const unsigned char app_update_bin[]"
+        data_len_name = "unsigned int app_update_bin_len"
+    else:
+        file_path = os.path.join(file_path, "BHY2", "fw.h")
+        DFU_UUID = DFU_EXTERNAL_UUID
+        data_var_name = "const unsigned char BHI260AP_NiclaSenseME_flash_fw[]"
+        data_len_name = "unsigned int BHI260AP_NiclaSenseME_flash_fw_len"
+    
 
     # Read the file data
     with open(file_path, "r") as file_handle:
@@ -94,8 +114,8 @@ if __name__ == "__main__":
     print(var_data_dict.keys())
 
     # Separate the variables
-    fw_var = var_data_dict["const unsigned char BHI260AP_NiclaSenseME_flash_fw[]"]
-    fw_byte_count = var_data_dict["unsigned int BHI260AP_NiclaSenseME_flash_fw_len"]
+    fw_var = var_data_dict[data_var_name]
+    fw_byte_count = var_data_dict[data_len_name]
 
     fw_var_byte_list = []
     for byte_val in fw_var[1:-1].split(","):

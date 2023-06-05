@@ -29,6 +29,9 @@ BLE Services and Characteristics
 // External Firmware
 #define BT_UUID_DFU_EXTERNAL_VAL \
     BT_UUID_128_ENCODE(0x34c2e3b8, 0x34ac, 0x11eb, 0xadc1, 0x0242ac120002)
+// Start the update process
+#define BT_UUID_DFU_ENABLE_VAL  \
+    BT_UUID_128_ENCODE(0x34c2e3b8, 0x34ad, 0x11eb, 0xadc1, 0x0242ac120002)
 
 // Service-2
 // Sensor
@@ -42,6 +45,7 @@ BLE Services and Characteristics
 #define BT_UUID_DFU_SERV                BT_UUID_DECLARE_128(BT_UUID_DFU_SERV_VAL)
 #define BT_UUID_DFU_INTERNAL            BT_UUID_DECLARE_128(BT_UUID_DFU_INTERNAL_VAL)
 #define BT_UUID_DFU_EXTERNAL            BT_UUID_DECLARE_128(BT_UUID_DFU_EXTERNAL_VAL)
+#define BT_UUID_DFU_ENABLE              BT_UUID_DECLARE_128(BT_UUID_DFU_ENABLE_VAL)
 #define BT_UUID_SEN_SERV                BT_UUID_DECLARE_128(BT_UUID_SEN_SERV_VAL)
 #define BT_UUID_SEN_CONFIG              BT_UUID_DECLARE_128(BT_UUID_SEN_CONFIG_VAL)
 
@@ -53,13 +57,17 @@ Callbacks for BLE
 typedef void (*firmware_data_t)(DFUType dfuType, const void *buf, uint16_t len);
 /** @brief Callback for sensor config update */
 typedef void (*sensor_config_t)(const void *buf, uint16_t len);
+/** @brief Callback for initialize firmware update */
+typedef void (*firmware_update_t)(DFUType dfuType);
 
 // Callbacks struct
 struct ns_cb {
-    // Firmware Update
+    // Firmware Data
     firmware_data_t firmware_data_cb;
     // Sensor Config
     sensor_config_t sensor_config_cb;
+    // Firmware Update
+    firmware_update_t firmware_update_cb;
 };
 
 /** @brief Initialize the callback functions for the BLE events

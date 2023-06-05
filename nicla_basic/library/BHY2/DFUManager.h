@@ -43,6 +43,8 @@ class DFUManager{
 
         void processPacket(DFUType dfuType, const uint8_t *data, uint16_t len);
 
+        int writeFirmwareToFlash(DFUType dfuType);
+
         /** @brief Ensures the FW update is complete */
         void closeDfu();
 
