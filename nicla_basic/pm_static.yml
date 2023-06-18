@@ -18,6 +18,10 @@ mcuboot_pad:
   region: flash_primary
   size: 0x200
 
+app:
+  address: 0x10200
+  size: 0x59E00
+
 mcuboot_primary:
   address: 0x10000
   end_address: 0x6A000
@@ -39,13 +43,31 @@ mcuboot_primary_app:
 
 mcuboot_secondary:
   address: 0x0
+  end_address: 0x5A000
   device: DT_CHOSEN(nordic_pm_ext_flash)
-  end_adress: 0xf0000
   placement: 
     align:
       start: 0x4
   region: external_flash
-  share_size:
-    - mcuboot_primary
-  size: 0xf0000
+  size: 0x5A000
 
+# external_flash:
+#   address: 0x5A000
+#   device: DT_CHOSEN(nordic_pm_ext_flash)
+#   placement:
+#     after:
+#       - mcuboot_secondary
+#   region: external_flash
+#   size: 0x100000
+  
+littlefs_storage:
+  address: 0x5A000
+  end_address: 0x200000
+  device: DT_CHOSEN(nordic_pm_ext_flash)
+  placement:
+    align:
+      start: 0x4
+    after:
+      - mcuboot_secondary
+  region: external_flash
+  size: 0x1A6000
