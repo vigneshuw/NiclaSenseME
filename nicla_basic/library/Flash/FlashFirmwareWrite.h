@@ -7,7 +7,7 @@
 #include <zephyr/storage/flash_map.h>
 
 // Code partition label
-#define UPLOAD_FLASH_AREA_LABEL             slot1_partition
+#define UPLOAD_FLASH_AREA_LABEL             mcuboot_secondary
 // Flash area ID
 #define UPLOAD_FLASH_AREA_ID                FIXED_PARTITION_ID(UPLOAD_FLASH_AREA_LABEL)
 // Flash Controller

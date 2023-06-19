@@ -6,13 +6,14 @@ import os
 import struct
 from tqdm import tqdm
 
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from bleak.uuids import uuid16_dict
 
 # Device address
-BLE_ADDRESS = (
-    "F4F465DA-1B01-2E80-97F2-F60573E277F4"
-)
+# BLE_ADDRESS = (
+#     "F4F465DA-1B01-2E80-97F2-F60573E277F4"
+# )
+BLE_DEVICE_NAME = "Sentinel01"
 
 # Firmware services
 DFU_SERVICE_UUID = "34c2e3b8-34aa-11eb-adc1-0242ac120002"
@@ -20,8 +21,15 @@ DFU_INTERNAL_UUID = "34c2e3b8-34ab-11eb-adc1-0242ac120002"
 DFU_EXTERNAL_UUID = "34c2e3b8-34ac-11eb-adc1-0242ac120002"
 
 
-async def main(address, data):
-    async with BleakClient(address, winrt=dict(use_cached_services=True)) as client:
+async def main(device_name, data):
+    # Find the required device
+    device = await BleakScanner.find_device_by_name("Sentinel01")
+    if device is None:
+        print("Cannot find the device")
+        sys.exit(1)
+    print(f"Device with address - {device.address} has been identified")
+
+    async with BleakClient(device, winrt=dict(use_cached_services=True)) as client:
         print(f"Connected: {client.is_connected}")
 
         # Preamble for data
@@ -131,4 +139,4 @@ if __name__ == "__main__":
         crc = crc ^ val
     print(f"The Computed CRC is {crc}")
 
-    asyncio.run(main(BLE_ADDRESS, fw_var_uint8_t))     
+    asyncio.run(main(BLE_DEVICE_NAME, fw_var_uint8_t))     
