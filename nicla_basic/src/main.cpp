@@ -25,6 +25,7 @@ int main(void) {
     while (1) {
         
         k_msleep(10000);
+        printk("main\n");
 
     }
 
