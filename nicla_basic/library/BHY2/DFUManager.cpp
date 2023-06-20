@@ -142,6 +142,13 @@ int DFUManager::writeFirmwareToFlash(DFUType dfuType) {
             return rc;
         }
 
+        // // before the start of writing. Erase the img bank
+        // rc = boot_erase_img_bank(UPLOAD_FLASH_AREA_ID);
+        // if(rc) {
+        //     LOG_ERR("Erasing of the image bank failed! rc = %d\n", rc);
+        //     return rc;
+        // }
+
         // Allocate for read data
         uint32_t num_chunks = fw_len / CHUNK_SIZE;
         uint32_t num_chunks_remain = fw_len % CHUNK_SIZE;

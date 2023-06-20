@@ -1,10 +1,59 @@
-external_flash:
+mcuboot:
   address: 0x0
-  end_address: 0x200000
+  end_adress: 0x10000
+  placement:
+    before:
+      - mcuboot_primary
+    region: flash_primary
+  size: 0x10000
+
+mcuboot_pad:
+  address: 0x10000
+  placement:
+    before:
+      - mcuboot_primary_app
+  region: flash_primary
+  size: 0x200
+
+app:
+  address: 0x10200
+  size: 0x6FE00
+
+mcuboot_primary:
+  address: 0x10000
+  orig_span: &id001
+    - mcuboot_pad
+    - app
+  region: flash_primary
+  size: 0x70000
+  span: *id001
+
+mcuboot_primary_app:
+  address: 0x10200
+  orig_span: &id002
+    - app
+  region: flash_primary
+  size: 0x6FE00
+  span: *id002
+
+external_flash:
+  address: 0x200000
   region: external_flash
-  size: 0x200000
+  size: 0x0
+
 littlefs_storage:
   address: 0x0
-  device: MX25R1635F
+  device: DT_CHOSEN(nordic_pm_ext_flash)
   region: external_flash
-  size: 0x200000
+  size: 0x190000
+
+mcuboot_secondary:
+  address: 0x190000
+  device: DT_CHOSEN(nordic_pm_ext_flash)
+  placement:
+    after:
+    - littlefs_storage
+    align:
+      start: 0x1000
+  region: external_flash
+  size: 0x70000
