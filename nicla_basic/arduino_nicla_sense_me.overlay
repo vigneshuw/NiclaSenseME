@@ -75,8 +75,18 @@ littlefs
 // Partition for external flash
 &logging_partition {
     label = "storage";
-    reg = < 0x00000000 0x00200000 >;
+    reg = < 0x00000000 0x00190200 >;
 };
+
+&mx25r1635f {
+    partitions {
+        mcb_sc: partition@190200 {
+            label = "mcuboot_sc";
+            reg = < 0x190200 0x6FE00 >;
+        };
+    };
+};
+
 
 
 /*
