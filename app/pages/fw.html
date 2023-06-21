@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="../bootstrap/css/bootstrap.css">
+    <script src="../bootstrap/js/bootstrap.bundle.js"></script>
+
+    <title>Sentinel</title>
+</head>
+<style>
+    body {
+        background-image: url('../images/fw_update.png');
+        overflow: hidden;
+        user-select: none;
+        background-color: rgba(0, 0, 0, 0.8);
+        background-blend-mode: darken;
+    }
+</style>
+<body>
+<div class="container mt-5">
+
+    <div class="row">
+        <div class="col-sm-11">
+            <h1 class="text-lg-center text-light"> Firmware Update</h1>
+            <p class="mt-2 lead text-lg-center text-light">Firmware can be updated for <span class="text-primary">nRF52832</span> and <span class="text-success">BHI260AP</span></p>
+        </div>
+        <div class="col-sm-1">
+            <div id="connectionStatus"></div>
+            <div class="spinner-grow text-success" style="width: 3rem; height: 3rem;" role="status">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card bg-transparent border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">nRF52832 (Primary MCU)</h5>
+                    <p class="card-text text-primary">Select and load the .bin firmware file</p>
+                    <a href="#" class="btn btn-warning">Check Integrity</a>
+                    <a href="#" class="btn btn-danger disabled">Transfer Firmware</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card bg-transparent border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">BHI260AP (Sensor)</h5>
+                    <p class="card-text text-success">Select and load the .bin firmware file</p>
+                    <a href="#" class="btn btn-warning">Check Integrity</a>
+                    <a href="#" class="btn btn-danger disabled">Transfer Firmware</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="mt-3 border-light">
+    <h1 class="text-lg-center text-light">Initiate Update</h1>
+    <div class="row">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="d-grid gap-2 col-6 mx-auto">
+                <button class="btn btn-outline-primary" type="button">FW-Swap (Test)</button>
+                <button class="btn btn-primary" type="button">FW-Swap (Permanent)</button>
+            </div>
+        </div>
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="d-grid gap-2 col-6 mx-auto">
+                <button class="btn btn-outline-success" type="button">FW-Swap (Test)</button>
+                <button class="btn btn-success" type="button">FW-Swap (Permanent)</button>
+            </div>
+        </div>
+    </div>
+
+    <hr class="mt-3 border-light">
+    <h1 class="text-lg-center text-light">Status</h1>
+    <div class="row mt-1">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div id="nRFCRCCheck">
+            </div>
+        </div>
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div id="BHYCRCCheck">
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-1">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div id="nRFTransferCheck">
+            </div>
+        </div>
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div id="BHYTransferCheck">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+</html>
