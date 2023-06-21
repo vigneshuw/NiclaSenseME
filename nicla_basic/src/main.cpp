@@ -9,6 +9,8 @@ LOG_MODULE_REGISTER(main, CONFIG_SET_LOG_LEVEL);
 
 int main(void) {
 
+    LOG_INF("Initializing the main loop\n");
+
     /*
     Initialize Nicla System
     */
