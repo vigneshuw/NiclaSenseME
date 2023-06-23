@@ -22,14 +22,9 @@
 <div class="container mt-5">
 
     <div class="row">
-        <div class="col-sm-11">
+        <div class="col-sm-12">
             <h1 class="text-lg-center text-light"> Firmware Update</h1>
             <p class="mt-2 lead text-lg-center text-light">Firmware can be updated for <span class="text-primary">nRF52832</span> and <span class="text-success">BHI260AP</span></p>
-        </div>
-        <div class="col-sm-1">
-            <div id="connectionStatus"></div>
-            <div class="spinner-grow text-success" style="width: 3rem; height: 3rem;" role="status">
-            </div>
         </div>
     </div>
 
@@ -40,8 +35,9 @@
                 <div class="card-body">
                     <h5 class="card-title text-primary">nRF52832 (Primary MCU)</h5>
                     <p class="card-text text-primary">Select and load the .bin firmware file</p>
-                    <a href="#" class="btn btn-warning">Check Integrity</a>
-                    <a href="#" class="btn btn-danger disabled">Transfer Firmware</a>
+                    <button class="btn btn-warning" id="internalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
+                    <button class="btn btn-success disabled" id="internalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
+                    <button class="btn btn-danger disabled" id="internalFWTransfer" onclick="FWTransfer(this.id)">Transfer Firmware</button>
                 </div>
             </div>
         </div>
@@ -50,10 +46,23 @@
                 <div class="card-body">
                     <h5 class="card-title text-success">BHI260AP (Sensor)</h5>
                     <p class="card-text text-success">Select and load the .bin firmware file</p>
-                    <a href="#" class="btn btn-warning">Check Integrity</a>
-                    <a href="#" class="btn btn-danger disabled">Transfer Firmware</a>
+                    <button class="btn btn-warning" id="externalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
+                    <button class="btn btn-success disabled" id="externalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
+                    <button class="btn btn-danger disabled" id="externalFWTransfer" onclick="FWTransfer(this.id)">Transfer Firmware</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div id="IntFWPg"></div>
+            <div class="progress" role="progressbar" aria-label="InternalFWTransfer" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-success" style="width: 85%">85%</div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div id="ExtFWPg"></div>
         </div>
     </div>
 
@@ -102,4 +111,5 @@
 
 
 </body>
+<script src="../renderer.js"></script>
 </html>
