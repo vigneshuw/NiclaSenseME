@@ -1,6 +1,6 @@
 // BLE GATT for Firmware Update
 gattFirmware = {
-    service: "34c2e3b8-34aa-11eb-adc1-0242ac120002",
+    service: ["34c2e3b8-34aa-11eb-adc1-0242ac120002"],
     characteristics: {
         internal_fw: "34c2e3b8-34ab-11eb-adc1-0242ac120002",
         external_fw: "0x34c2e3b8-34ac-11eb-adc1-0242ac120002",

@@ -1,5 +1,6 @@
 const {app, BrowserWindow, ipcMain, dialog} = require("electron")
 const fs = require("fs")
+const Buffer = require("buffer/").Buffer
 // BLE
 const noble = require("@abandonware/noble")
 const {gattFirmware} = require("./ble")
@@ -12,6 +13,8 @@ BLE Connection Parameters
 // BLE device connection Indicator
 let is_device_connected = false
 let bleDevice = undefined
+let focusedServices = undefined
+let focusedCharacteristics = undefined
 let internalFWPath = undefined
 let externalFWPath = undefined
 // Callbacks for Connection
@@ -44,8 +47,6 @@ function onPeripheralDisconnectCallback() {
     externalFWPath = undefined
 
 }
-let focusedServices = undefined
-let focusedCharacteristics = undefined
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -105,7 +106,7 @@ function createWindow() {
      */
     // FW Services Connection
     ipcMain.on("S01_FWUpdate", (e, args) => {
-        let serviceUUIDs = [gattFirmware.service]
+        let serviceUUIDs = gattFirmware.service
         let characteristicsUUIDs = Object.values(gattFirmware.characteristics)
         bleDevice.discoverSomeServicesAndCharacteristics(serviceUUIDs, characteristicsUUIDs, (error, service, characteristics) => {
             // Bring the items to focus
@@ -170,23 +171,113 @@ function createWindow() {
 
         // Data params
         let fwFile = undefined
+        let data = undefined
+        let data_length = undefined
+        let last_packet = 0
+        let transfer_bytes = 200
+        let main_buf = undefined
+        let preamble_buf = Buffer.alloc(5)
+        let concat_buf = undefined
+        // Transfer
+        let num_bytes_packets = undefined
+        let rm_bytes = undefined
+        // Progress bar
+        let currentProgress = 0
+        let totalProgress = undefined
         let crc = 0x00
-        if(args.fw_type === "internalFWCheck") {
+        if(args.fw_type === "internalFWTransfer") {
             fwFile = internalFWPath
         } else {
             fwFile = externalFWPath
         }
-        // BLE params
-        
 
-        // Read data and transfer
-        console.log(fwFile)
+        // Read the FW file
         if(fwFile) {
-            let data = fs.readFileSync(fwFile)
-            console.log(`The firmware data for transfer has a size of ${data.length}`)
+            data = fs.readFileSync(fwFile)
 
+            // Prep for transfer
+            data_length = data.length
+            num_bytes_packets = Math.trunc(data_length / transfer_bytes)
+            rm_bytes = data_length % transfer_bytes
+            console.log(`Total number of bytes in firmware ${data_length}. 
+            Number of packets = ${num_bytes_packets}, Remainder packets = ${rm_bytes}`)
 
+            // Progress bar
+            currentProgress = 1
+            totalProgress = num_bytes_packets + ((rm_bytes) ? 1 : 0)
+
+        } else {
+            e.returnValue = false
         }
+
+        // BLE params
+        if((focusedServices.length === gattFirmware.service.length) &&
+            (focusedCharacteristics.length === Object.values(gattFirmware.characteristics).length)) {
+
+            // Set the BLE Interfaces
+            if(args.fw_type === "internalFWTransfer") {
+                focusedCharacteristics.forEach((characteristic, index) => {
+                    if(characteristic.uuid === gattFirmware.characteristics["internal_fw"].split("-").join("")) {
+
+                        // Add a callback to characteristics write
+                        characteristic.on("write", () => {
+                            // Update progress bar
+                            mainWindow.webContents.send("internalFWProgress",
+                                {"value": Math.trunc((currentProgress/totalProgress) * 100)})
+                            currentProgress ++;
+
+                        })
+
+                        // Control the write process
+                        let start_index = undefined
+                        let end_index = undefined
+                        for(let i = 0; i < num_bytes_packets; i++) {
+
+                            // Indexing bounds
+                            start_index = Math.trunc(i * transfer_bytes)
+                            end_index = Math.trunc(start_index + transfer_bytes)
+
+                            // When reaching the last byte
+                            if(i === (num_bytes_packets - 1)) {
+                                if(rm_bytes === 0) {
+                                    // Set the last packet
+                                    last_packet = 1
+                                }
+                            }
+
+                            // Configure the data appropriately
+                            main_buf = Buffer.from(data.slice(start_index, end_index))
+                            preamble_buf.writeUInt32LE(start_index, 1)
+                            preamble_buf.writeUInt8(last_packet, 0)
+                            concat_buf = Buffer.concat([preamble_buf, main_buf], transfer_bytes + 5)
+                            characteristic.write(concat_buf, false)
+
+                        }
+
+                        // Case of remainder bytes
+                        if(rm_bytes !== 0) {
+
+                            // Get the indexes
+                            start_index = end_index
+                            end_index = start_index + rm_bytes
+                            last_packet = 1
+
+                            main_buf = Buffer.from(data.slice(start_index, end_index))
+                            preamble_buf.writeUInt32LE(start_index, 1)
+                            preamble_buf.writeUInt8(last_packet, 0)
+                            concat_buf = Buffer.concat([preamble_buf, main_buf], rm_bytes + 5)
+                            characteristic.write(concat_buf, false)
+
+                        }
+
+
+                        // The Transfer is successfully complete
+                        e.returnValue = true;
+                    }
+                })
+            }
+        }
+
     })
 
 

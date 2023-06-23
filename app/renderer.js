@@ -1,5 +1,13 @@
 const {ipcRenderer} = require("electron");
 
+
+ipcRenderer.on("internalFWProgress", (e, message) => {
+    document.getElementById("internalFWProgress").style.width = `${message.value}%`;
+    document.getElementById("internalFWProgress").innerHTML = `${message.value}%`
+    console.log(message.value)
+})
+
+
 /**
  * @brief   Initiate a connection to a specific Sentinel
  *
@@ -75,6 +83,5 @@ function FWCheck(id) {
     }
 }
 function FWTransfer(id) {
-    ipcRenderer.sendSync("S01_FWTransfer", {fw_type: id})
-
+    let writeStatus = ipcRenderer.sendSync("S01_FWTransfer", {fw_type: id})
 }

@@ -139,4 +139,4 @@ if __name__ == "__main__":
         crc = crc ^ val
     print(f"The Computed CRC is {crc}")
 
-    # asyncio.run(main(BLE_DEVICE_NAME, fw_var_uint8_t))     
+    asyncio.run(main(BLE_DEVICE_NAME, fw_var_uint8_t))     
