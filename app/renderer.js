@@ -5,9 +5,32 @@ ipcRenderer.on("FWProgress", (e, message) => {
     if(message.fw_type === "internalFWTransfer") {
         document.getElementById("internalFWProgress").style.width = `${message.value}%`;
         document.getElementById("internalFWProgress").innerHTML = `${message.value}%`
+
+        if(message.value === 100) {
+            document.getElementById("nRFTransferCheck").innerHTML = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Firmware Write</strong> complete.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
+            document.getElementById("IntFWST").classList.remove("disabled")
+            document.getElementById("IntFWSP").classList.remove("disabled")
+        }
+
     } else {
         document.getElementById("externalFWProgress").style.width = `${message.value}%`;
         document.getElementById("externalFWProgress").innerHTML = `${message.value}%`
+
+        if(message.value === 100) {
+            document.getElementById("BHYTransferCheck").innerHTML = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Firmware Write</strong> complete.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
+            document.getElementById("ExtFWST").classList.remove("disabled")
+            document.getElementById("ExtFWSP").classList.remove("disabled")
+        }
     }
 })
 
@@ -89,9 +112,21 @@ function FWCheck(id) {
 function FWTransfer(id) {
     let writeStatus = ipcRenderer.sendSync("S01_FWTransfer", {fw_type: id})
     if(writeStatus) {
-        const cells = document.getElementsByTagName("button")
-        for (const cell of cells) {
-            cell.classList.add("disabled")
+
+        if(id === "internalFWTransfer") {
+            document.getElementById("nRFTransferCheck").innerHTML = `
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Firmware Write</strong> in progress.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
+        } else if (id === "externalFWTransfer") {
+            document.getElementById("BHYTransferCheck").innerHTML = `
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Firmware Write</strong> in progress.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
         }
     }
 }
