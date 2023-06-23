@@ -171,6 +171,7 @@ function createWindow() {
 
         // Data params
         let fwFile = undefined
+        let fwCharacteristic = undefined
         let data = undefined
         let data_length = undefined
         let last_packet = 0
@@ -214,73 +215,85 @@ function createWindow() {
         if((focusedServices.length === gattFirmware.service.length) &&
             (focusedCharacteristics.length === Object.values(gattFirmware.characteristics).length)) {
 
-            // Set the BLE Interfaces
-            if(args.fw_type === "internalFWTransfer") {
+            // Identify the right characteristics
+            if (args.fw_type === "internalFWTransfer") {
                 focusedCharacteristics.forEach((characteristic, index) => {
-                    if(characteristic.uuid === gattFirmware.characteristics["internal_fw"].split("-").join("")) {
-
-                        // Add a callback to characteristics write
-                        characteristic.on("write", () => {
-                            // Update progress bar
-                            mainWindow.webContents.send("internalFWProgress",
-                                {"value": Math.trunc((currentProgress/totalProgress) * 100)})
-                            currentProgress ++;
-
-                        })
-
-                        // Control the write process
-                        let start_index = undefined
-                        let end_index = undefined
-                        for(let i = 0; i < num_bytes_packets; i++) {
-
-                            // Indexing bounds
-                            start_index = Math.trunc(i * transfer_bytes)
-                            end_index = Math.trunc(start_index + transfer_bytes)
-
-                            // When reaching the last byte
-                            if(i === (num_bytes_packets - 1)) {
-                                if(rm_bytes === 0) {
-                                    // Set the last packet
-                                    last_packet = 1
-                                }
-                            }
-
-                            // Configure the data appropriately
-                            main_buf = Buffer.from(data.slice(start_index, end_index))
-                            preamble_buf.writeUInt32LE(start_index, 1)
-                            preamble_buf.writeUInt8(last_packet, 0)
-                            concat_buf = Buffer.concat([preamble_buf, main_buf], transfer_bytes + 5)
-                            characteristic.write(concat_buf, false)
-
-                        }
-
-                        // Case of remainder bytes
-                        if(rm_bytes !== 0) {
-
-                            // Get the indexes
-                            start_index = end_index
-                            end_index = start_index + rm_bytes
-                            last_packet = 1
-
-                            main_buf = Buffer.from(data.slice(start_index, end_index))
-                            preamble_buf.writeUInt32LE(start_index, 1)
-                            preamble_buf.writeUInt8(last_packet, 0)
-                            concat_buf = Buffer.concat([preamble_buf, main_buf], rm_bytes + 5)
-                            characteristic.write(concat_buf, false)
-
-                        }
-
-
-                        // The Transfer is successfully complete
-                        e.returnValue = true;
+                    if (characteristic.uuid === gattFirmware.characteristics["internal_fw"].split("-").join("")) {
+                        fwCharacteristic = characteristic;
                     }
                 })
+            } else if (args.fw_type === "externalFWTransfer") {
+                focusedCharacteristics.forEach((characteristic, index) => {
+                    if (characteristic.uuid === gattFirmware.characteristics["external_fw"].split("-").join("")) {
+                        fwCharacteristic = characteristic;
+                    }
+                })
+            } else {
+                e.returnValue = false
             }
+
+        } else {
+            e.returnValue = false
         }
 
+        if(fwCharacteristic && data) {
+            // Add a callback to characteristics write
+            fwCharacteristic.on("write", () => {
+                // Update progress bar
+                mainWindow.webContents.send("FWProgress",
+                    {"value": Math.trunc((currentProgress/totalProgress) * 100), "fw_type": args.fw_type})
+                currentProgress ++;
+
+            })
+
+            // Control the write process
+            let start_index = undefined
+            let end_index = undefined
+            for(let i = 0; i < num_bytes_packets; i++) {
+
+                // Indexing bounds
+                start_index = Math.trunc(i * transfer_bytes)
+                end_index = Math.trunc(start_index + transfer_bytes)
+
+                // When reaching the last byte
+                if(i === (num_bytes_packets - 1)) {
+                    if(rm_bytes === 0) {
+                        // Set the last packet
+                        last_packet = 1
+                    }
+                }
+
+                // Configure the data appropriately
+                main_buf = Buffer.from(data.slice(start_index, end_index))
+                preamble_buf.writeUInt32LE(start_index, 1)
+                preamble_buf.writeUInt8(last_packet, 0)
+                concat_buf = Buffer.concat([preamble_buf, main_buf], transfer_bytes + 5)
+                fwCharacteristic.write(concat_buf, false)
+
+            }
+
+            // Case of remainder bytes
+            if(rm_bytes !== 0) {
+
+                // Get the indexes
+                start_index = end_index
+                end_index = start_index + rm_bytes
+                last_packet = 1
+
+                main_buf = Buffer.from(data.slice(start_index, end_index))
+                preamble_buf.writeUInt32LE(start_index, 1)
+                preamble_buf.writeUInt8(last_packet, 0)
+                concat_buf = Buffer.concat([preamble_buf, main_buf], rm_bytes + 5)
+                fwCharacteristic.write(concat_buf, false)
+
+            }
+
+            // The Transfer is successfully complete
+            e.returnValue = true;
+        } else {
+            e.returnValue = false;
+        }
     })
-
-
 
 }
 

@@ -1,10 +1,14 @@
 const {ipcRenderer} = require("electron");
 
 
-ipcRenderer.on("internalFWProgress", (e, message) => {
-    document.getElementById("internalFWProgress").style.width = `${message.value}%`;
-    document.getElementById("internalFWProgress").innerHTML = `${message.value}%`
-    console.log(message.value)
+ipcRenderer.on("FWProgress", (e, message) => {
+    if(message.fw_type === "internalFWTransfer") {
+        document.getElementById("internalFWProgress").style.width = `${message.value}%`;
+        document.getElementById("internalFWProgress").innerHTML = `${message.value}%`
+    } else {
+        document.getElementById("externalFWProgress").style.width = `${message.value}%`;
+        document.getElementById("externalFWProgress").innerHTML = `${message.value}%`
+    }
 })
 
 
@@ -55,11 +59,9 @@ function FWLoad(id) {
         if(id === "internalFWLoad") {
             // Enable the Check and Transfer Button
             document.getElementById("internalFWCheck").classList.remove("disabled")
-            document.getElementById("internalFWTransfer").classList.remove("disabled")
         } else {
             // Enable the Check and Transfer Button
             document.getElementById("externalFWCheck").classList.remove("disabled")
-            document.getElementById("externalFWTransfer").classList.remove("disabled")
         }
 
     }
@@ -73,6 +75,7 @@ function FWCheck(id) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `
+        document.getElementById("internalFWTransfer").classList.remove("disabled")
     } else {
         document.getElementById("BHYCRCCheck").innerHTML = `
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -80,8 +83,15 @@ function FWCheck(id) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `
+        document.getElementById("externalFWTransfer").classList.remove("disabled")
     }
 }
 function FWTransfer(id) {
     let writeStatus = ipcRenderer.sendSync("S01_FWTransfer", {fw_type: id})
+    if(writeStatus) {
+        const cells = document.getElementsByTagName("button")
+        for (const cell of cells) {
+            cell.classList.add("disabled")
+        }
+    }
 }

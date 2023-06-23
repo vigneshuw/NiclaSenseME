@@ -35,8 +35,8 @@
                 <div class="card-body">
                     <h5 class="card-title text-primary">nRF52832 (Primary MCU)</h5>
                     <p class="card-text text-primary">Select and load the .bin firmware file</p>
-                    <button class="btn btn-warning" id="internalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
-                    <button class="btn btn-success disabled" id="internalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
+                    <button class="btn btn-secondary" id="internalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
+                    <button class="btn btn-secondary disabled" id="internalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
                     <button class="btn btn-danger disabled" id="internalFWTransfer" onclick="FWTransfer(this.id)">Transfer Firmware</button>
                 </div>
             </div>
@@ -46,8 +46,8 @@
                 <div class="card-body">
                     <h5 class="card-title text-success">BHI260AP (Sensor)</h5>
                     <p class="card-text text-success">Select and load the .bin firmware file</p>
-                    <button class="btn btn-warning" id="externalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
-                    <button class="btn btn-success disabled" id="externalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
+                    <button class="btn btn-secondary" id="externalFWLoad" onclick="FWLoad(this.id)">Load Firmware</button>
+                    <button class="btn btn-secondary disabled" id="externalFWCheck" onclick="FWCheck(this.id)">Check Integrity</button>
                     <button class="btn btn-danger disabled" id="externalFWTransfer" onclick="FWTransfer(this.id)">Transfer Firmware</button>
                 </div>
             </div>
@@ -58,7 +58,7 @@
         <div class="col-sm-6 mb-3 mb-sm-0">
             <div id="IntFWPg"></div>
             <div class="progress" role="progressbar" aria-label="InternalFWTransfer" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar bg-primary" id="internalFWProgress" style="width: 50%">0%</div>
+                <div class="progress-bar bg-primary" id="internalFWProgress" style="width: 0%">0%</div>
             </div>
         </div>
         <div class="col-sm-6">
@@ -73,14 +73,14 @@
     <div class="row">
         <div class="col-sm-6 mb-3 mb-sm-0">
             <div class="d-grid gap-2 col-6 mx-auto">
-                <button class="btn btn-outline-primary" type="button">FW-Swap (Test)</button>
-                <button class="btn btn-primary" type="button">FW-Swap (Permanent)</button>
+                <button class="btn btn-outline-primary disabled" type="button">FW-Swap (Test)</button>
+                <button class="btn btn-primary disabled" type="button">FW-Swap (Permanent)</button>
             </div>
         </div>
         <div class="col-sm-6 mb-3 mb-sm-0">
             <div class="d-grid gap-2 col-6 mx-auto">
-                <button class="btn btn-outline-success" type="button">FW-Swap (Test)</button>
-                <button class="btn btn-success" type="button">FW-Swap (Permanent)</button>
+                <button class="btn btn-outline-success disabled" type="button">FW-Swap (Test)</button>
+                <button class="btn btn-success disabled" type="button">FW-Swap (Permanent)</button>
             </div>
         </div>
     </div>
