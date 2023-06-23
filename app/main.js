@@ -135,12 +135,17 @@ function createWindow() {
             properties: ["openFile"],
             buttonLabel: "Select",
         })
-        if (fw_type === "Internal Firmware") {
-            internalFWPath = filePath[0]
+        if(filePath) {
+            if (fw_type === "Internal Firmware") {
+                internalFWPath = filePath[0]
+            } else {
+                externalFWPath = filePath[0]
+            }
+            e.returnValue = filePath[0]
         } else {
-            externalFWPath = filePath[0]
+            e.returnValue = undefined
         }
-        e.returnValue = filePath[0]
+
 
     })
     ipcMain.on("S01_FWCheck", (e, args) => {

@@ -1,6 +1,8 @@
 const {ipcRenderer} = require("electron");
 
-
+/*
+Update the progress bar in real-time as the firmware is transferred
+ */
 ipcRenderer.on("FWProgress", (e, message) => {
     if(message.fw_type === "internalFWTransfer") {
         document.getElementById("internalFWProgress").style.width = `${message.value}%`;
@@ -54,6 +56,9 @@ function deviceSentinel01INIT(){
 }
 
 
+/*
+FW Update for the device
+ */
 /**
  * @brief   Get the right services and characteristics for the operation
  *          This is for the Firmware Transfer
@@ -72,8 +77,12 @@ function fwServiceInit() {
     ipcRenderer.send("S01_FWUpdate");
 
 }
-
-
+/**
+ * @brief Load the firmware file, i.e., get the file path for the firmware
+ *
+ * @param id The ID corresponding to the button that was pressed
+ *
+ */
 function FWLoad(id) {
     // load the file or get location
     let filePath = ipcRenderer.sendSync("S01_FWLoader", {fw_type: id})
@@ -89,6 +98,14 @@ function FWLoad(id) {
 
     }
 }
+
+/**
+ * @brief   Check the CRC of the loaded firmware and display the current CRC at a specific location depending on the type
+ * of firmware loaded (internal or external)
+ *
+ * @param id The ID corresponding to the button that was pressed
+ * @constructor
+ */
 function FWCheck(id) {
     let crc = ipcRenderer.sendSync("S01_FWCheck", {fw_type: id})
     if(id === "internalFWCheck") {
@@ -109,6 +126,13 @@ function FWCheck(id) {
         document.getElementById("externalFWTransfer").classList.remove("disabled")
     }
 }
+
+/**
+ * @brief   Initiate the transfer of the firmware to the device over BLE
+ *
+ * @param id    The ID corresponding to the button that was pressed
+ * @constructor
+ */
 function FWTransfer(id) {
     let writeStatus = ipcRenderer.sendSync("S01_FWTransfer", {fw_type: id})
     if(writeStatus) {
