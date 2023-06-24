@@ -15,6 +15,12 @@ enum DFUType {
     DFU_EXTERNAL
 };
 
+/** @brief Type of frimware update, test or permanent */
+enum DFULevel {
+    DFU_TEST,
+    DFU_PERMANENT
+};
+
 /** @brief Acknowledgement*/
 enum DFUAckCode {
     DFUAck = 0x0F,
@@ -43,7 +49,7 @@ class DFUManager{
 
         void processPacket(DFUType dfuType, const uint8_t *data, uint16_t len);
 
-        int writeFirmwareToFlash(DFUType dfuType);
+        int writeFirmwareToFlash(DFUType dfuType, DFULevel dfuLevel);
 
         /** @brief Ensures the FW update is complete */
         void closeDfu();

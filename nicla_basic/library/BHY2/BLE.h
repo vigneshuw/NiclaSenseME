@@ -58,7 +58,7 @@ typedef void (*firmware_data_t)(DFUType dfuType, const void *buf, uint16_t len);
 /** @brief Callback for sensor config update */
 typedef void (*sensor_config_t)(const void *buf, uint16_t len);
 /** @brief Callback for initialize firmware update */
-typedef void (*firmware_update_t)(DFUType dfuType);
+typedef void (*firmware_update_t)(DFUType dfuType, DFULevel dfuLevel);
 
 // Callbacks struct
 struct ns_cb {

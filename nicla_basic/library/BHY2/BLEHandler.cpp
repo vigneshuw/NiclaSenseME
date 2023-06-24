@@ -126,10 +126,10 @@ void BLEHandler::processDFUPacket(DFUType dfuType, const void *buf, uint16_t len
 
 }
 
-void BLEHandler::writeDFUFirmwareToFlash(DFUType dfuType) {
+void BLEHandler::writeDFUFirmwareToFlash(DFUType dfuType, DFULevel dfuLevel) {
     LOG_DBG("Firmware write has been initialized\n");
 
-    int rc = dfuManager.writeFirmwareToFlash(dfuType);
+    int rc = dfuManager.writeFirmwareToFlash(dfuType, dfuLevel);
     if(rc) {
         LOG_ERR("The Firmware write has failed\n");
     } else {

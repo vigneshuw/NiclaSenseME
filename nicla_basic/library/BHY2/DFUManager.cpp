@@ -125,7 +125,7 @@ void DFUManager::processPacket(DFUType dfuType, const uint8_t *data, uint16_t le
 
 }
 
-int DFUManager::writeFirmwareToFlash(DFUType dfuType) {
+int DFUManager::writeFirmwareToFlash(DFUType dfuType, DFULevel dfuLevel) {
 
     // Initialize IMG struct
     int rc = flash_img_init_id(&flash_ctx, UPLOAD_FLASH_AREA_ID);
@@ -192,8 +192,8 @@ int DFUManager::writeFirmwareToFlash(DFUType dfuType) {
             return -1;
         }
 
-        // Boot upgrade request
-        rc = boot_request_upgrade(BOOT_UPGRADE_TEST);
+        // Boot upgrade request - Decide based on the level
+        rc = boot_request_upgrade((dfuLevel) ? BOOT_UPGRADE_PERMANENT: BOOT_UPGRADE_TEST);
         if(rc) {
             LOG_ERR("Boot upgrade request has failed\n");
             return rc;

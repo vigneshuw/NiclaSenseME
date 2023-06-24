@@ -1,13 +1,12 @@
 {
-  "name": "app",
+  "name": "supremus",
   "version": "1.0.0",
-  "description": "Application to interface with the Sentinels",
+  "description": "Controller for all Sentinels",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "watch": "nodemon --exec electron .",
-    "reset": "git reset --hard",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "reset": "git reset --hard"
   },
   "keywords": [],
   "author": "Vignesh Selvaraj",
@@ -21,5 +20,20 @@
     "@abandonware/noble": "^1.9.2-21",
     "bootstrap": "^5.3.0",
     "buffer": "^6.0.3"
+  },
+  "build": {
+    "appId": "com.vselvaraj.supremus",
+    "copyright": "Copyright vselvaraj@wisc.edu",
+    "mac" : {
+      "category": "public.app-category.healthcare-fitness",
+      "target": "dmg"
+    },
+    "windows" : {
+      "target": "zip"
+    },
+    "linux" : {
+      "category": "Science"
+    }
+
   }
 }
