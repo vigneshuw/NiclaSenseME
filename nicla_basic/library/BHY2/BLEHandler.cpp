@@ -7,6 +7,14 @@
 LOG_MODULE_REGISTER(MD_BLEHandler, CONFIG_SET_LOG_LEVEL);
 
 /*
+Sensor Configuration
+*/
+#define STACK_SIZE              1024
+#define PRIORITY                7
+#define CHECK_INTERVAL          100
+
+
+/*
 BLE Connection Advertising
 */
 // Advertising params
