@@ -21,9 +21,9 @@ Sensor Configuration
 // Sensor Variables
 SensorXYZ                       _accl_sensor(SENSOR_ID_ACC_PASS);
 SensorXYZ                       _gyro_sensor(SENSOR_ID_GYRO_PASS);
-SensorOrientation               _orin_sensor(SENSOR_ID_DEVICE_ORI);
+SensorOrientation               _orin_sensor(SENSOR_ID_ORI);
 SensorQuaternion                _rota_sensor(SENSOR_ID_RV);
-// SensorBSEC                      _bsec_sensor(SENSOR_ID_BSEC);
+SensorBSEC                      _bsec_sensor(SENSOR_ID_BSEC);
 
 // Data update status
 bool update_state = false;
@@ -53,8 +53,6 @@ void select_active_sensor(uint8_t sensor_id) {
 struct ns_sd_cb sensor_data_callbacks = {
     .sensor_select_cb = select_active_sensor
 };
-
-
 /** @brief  Sending the data over BLE */
 void send_sensor_data(struct k_work *item) {
     // Get the pointer to the data structure
@@ -74,24 +72,28 @@ void process_sensor_data(void) {
     case 0:
         break;
     
-    case 1:
+    case SENSOR_ID_ACC_PASS:
+    case SENSOR_ID_GYRO_PASS:
         {
             // Copy the data to buffer
-            DataXYZ _sData = _accl_sensor.getData();
+            DataXYZ _sData;
+            if(active_sensor == 1) {
+                _sData = _accl_sensor.getData();
+            } else {
+                _sData = _gyro_sensor.getData();
+            }
+            
             bytecpy(&buf[byte_counter], &_sData, sizeof(_sData));
             byte_counter += sizeof(_sData);
 
             // Check if we need to send data
-            if((byte_counter + sizeof(_sData)) > sizeof(buf) - 1) {
+            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
                 // Update length as first variable
                 buf[0] = byte_counter - 1;
 
                 // Send data over BLE
                 // Complete pending work
                 bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
-                if (work_state) {
-                    printk("Work pending!\n");
-                }
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
@@ -103,17 +105,89 @@ void process_sensor_data(void) {
         }
         break;
 
-    // case 10:
-    //     break;
+    case SENSOR_ID_ORI:
+        {
+            DataOrientation _sData;
+            _sData = _orin_sensor.getData();
 
-    // case 69:
-    //     break;
+            bytecpy(&buf[byte_counter], &_sData, sizeof(_sData));
+            byte_counter += sizeof(_sData);
 
-    // case 34:
-    //     break;
+            // Check if we need to send data
+            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+                // Update length as first variable
+                buf[0] = byte_counter - 1;
 
-    // case 115:
-    //     break;
+                // Send data over BLE
+                // Complete pending work
+                bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
+
+                //  Copy the new data 
+                bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
+                byte_counter = 1;
+
+                // Add the item to work queue
+                k_work_submit(&sensor_work_q_data.work);
+            }
+
+        }
+        break;
+
+    case SENSOR_ID_RV:
+        {
+            DataQuaternion _sData;
+            _sData = _rota_sensor.getData();
+
+            bytecpy(&buf[byte_counter], &_sData, sizeof(_sData));
+            byte_counter += sizeof(_sData);
+
+            // Check if we need to send data
+            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+                // Update length as first variable
+                buf[0] = byte_counter - 1;
+
+                // Send data over BLE
+                // Complete pending work
+                bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
+
+                //  Copy the new data 
+                bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
+                byte_counter = 1;
+
+                // Add the item to work queue
+                k_work_submit(&sensor_work_q_data.work);
+            }
+
+
+        }
+        break;
+
+    case SENSOR_ID_BSEC:
+        {
+            DataBSEC _sData;
+            _sData = _bsec_sensor.getData();
+
+            bytecpy(&buf[byte_counter], &_sData, sizeof(_sData));
+            byte_counter += sizeof(_sData);
+
+            // Check if we need to send data
+            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+                // Update length as first variable
+                buf[0] = byte_counter - 1;
+
+                // Send data over BLE
+                // Complete pending work
+                bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
+
+                //  Copy the new data 
+                bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
+                byte_counter = 1;
+
+                // Add the item to work queue
+                k_work_submit(&sensor_work_q_data.work);
+            }
+        }
+        break;
     
     default:
         break;
@@ -146,8 +220,6 @@ int main(void) {
     k_work_queue_start(&sensor_work_q, sensor_work_q_stack_area, 
                 K_THREAD_STACK_SIZEOF(sensor_work_q_stack_area), PRIORITY, NULL);
     k_work_init(&sensor_work_q_data.work, send_sensor_data);
-
-    _accl_sensor.configure(50, 0);
 
     while (1) {
 

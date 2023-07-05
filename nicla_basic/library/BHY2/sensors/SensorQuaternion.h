@@ -30,6 +30,10 @@ class SensorQuaternion: public SensorClass {
             return _data.accuracy;
         }
 
+        DataQuaternion getData() {
+            return _data;
+        }
+
         float getFactor() {
             return _factor;
         }
