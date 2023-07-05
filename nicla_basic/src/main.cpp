@@ -15,6 +15,9 @@ Sensor Configuration
 #define STACK_SIZE              1024
 #define PRIORITY                7
 #define CHECK_INTERVAL          10
+#define BLE_DATA_LEN            201
+
+
 // Sensor Variables
 SensorXYZ                       _accl_sensor(SENSOR_ID_ACC_PASS);
 SensorXYZ                       _gyro_sensor(SENSOR_ID_GYRO_PASS);
@@ -24,18 +27,32 @@ SensorQuaternion                _rota_sensor(SENSOR_ID_RV);
 
 // Data update status
 bool update_state = false;
-uint8_t active_sensor = 1;
-uint8_t byte_counter = 0;
-uint8_t buf[200];
+uint8_t active_sensor = 0;
+uint8_t byte_counter = 1;
+uint8_t buf[BLE_DATA_LEN];
 
 // Work Queue initialization
 K_THREAD_STACK_DEFINE(sensor_work_q_stack_area, STACK_SIZE);
 struct k_work_q sensor_work_q;
 struct work_q_data {
     struct k_work work;
-    uint8_t buf[200];
+    uint8_t buf[BLE_DATA_LEN];
 } sensor_work_q_data;
 struct k_work_sync sensor_work_q_sync;
+
+
+/*
+BLE Setup for Sensor Data Transfer
+*/
+/** @brief  Set the active sensor */
+void select_active_sensor(uint8_t sensor_id) {
+    active_sensor = sensor_id;
+    LOG_DBG("Sensor Selectiom: Received Sensor ID %u", sensor_id);
+}
+// Set the callback struct
+struct ns_sd_cb sensor_data_callbacks = {
+    .sensor_select_cb = select_active_sensor
+};
 
 
 /** @brief  Sending the data over BLE */
@@ -45,7 +62,7 @@ void send_sensor_data(struct k_work *item) {
         CONTAINER_OF(item, struct work_q_data, work);
     
     // Send over BLE
-    printk("Length of data received is %u\n", sizeof(data->buf));
+    sensor_send_data_notify(data->buf);
 }
 
 
@@ -54,6 +71,9 @@ void process_sensor_data(void) {
 
     switch (active_sensor)
     {
+    case 0:
+        break;
+    
     case 1:
         {
             // Copy the data to buffer
@@ -63,6 +83,9 @@ void process_sensor_data(void) {
 
             // Check if we need to send data
             if((byte_counter + sizeof(_sData)) > sizeof(buf) - 1) {
+                // Update length as first variable
+                buf[0] = byte_counter - 1;
+
                 // Send data over BLE
                 // Complete pending work
                 bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
@@ -72,7 +95,7 @@ void process_sensor_data(void) {
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
-                byte_counter = 0;
+                byte_counter = 1;
 
                 // Add the item to work queue
                 k_work_submit(&sensor_work_q_data.work);
@@ -112,6 +135,9 @@ int main(void) {
     if(!ret) {
         LOG_ERR("3V3LDO failed!\n");
     }
+
+    // Initialize BLE Callback struct
+    sensor_data_callback_init(&sensor_data_callbacks);
 
     // Initialize BHI260
     bhy2.begin();
