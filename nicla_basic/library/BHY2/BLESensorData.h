@@ -50,7 +50,7 @@ struct ns_sd_cb {
  * @retval  Otherwise, a -ve error code
  * 
 */
-int sensor_send_data_notify(uint8_t *data_buf);
+int sensor_send_data_notify(uint8_t *data_buf, uint16_t len);
 
 /** @brief Initialize the callback functions for the Sensor Select BLE event
  * 

@@ -69,11 +69,12 @@ BT_GATT_SERVICE_DEFINE(sensorDataTransport,
 );
 
 
-int sensor_send_data_notify(uint8_t *data_buf) {
+int sensor_send_data_notify(uint8_t *data_buf, uint16_t len) {
     // Check for notifications enabled
     if(!notify_sensor_enabled) {
         return -EACCES;
     }
 
-    return bt_gatt_notify(NULL, &sensorDataTransport.attrs[2], data_buf, sizeof(data_buf));
+    return bt_gatt_notify(NULL, &sensorDataTransport.attrs[2], data_buf, len);
+    
 }

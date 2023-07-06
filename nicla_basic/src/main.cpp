@@ -48,6 +48,44 @@ BLE Setup for Sensor Data Transfer
 void select_active_sensor(uint8_t sensor_id) {
     active_sensor = sensor_id;
     LOG_DBG("Sensor Selectiom: Received Sensor ID %u", sensor_id);
+
+    switch (sensor_id)
+    {
+    case 0:
+        // Disable all sensors
+        _accl_sensor.begin(0, 0);
+        _gyro_sensor.begin(0, 0);
+        _orin_sensor.begin(0, 0);
+        _rota_sensor.begin(0, 0);
+        _bsec_sensor.begin(0, 0);
+        break;
+
+    case SENSOR_ID_ACC_PASS:
+        _accl_sensor.begin(50, 0);
+        // 8g
+        _accl_sensor.setRange(8);
+        break;
+
+    case SENSOR_ID_GYRO_PASS:
+        _gyro_sensor.begin(50, 0);
+        // 250 degree/s
+        _gyro_sensor.setRange(250);
+        break;
+
+    case SENSOR_ID_ORI:
+        _orin_sensor.begin(50, 0);
+        break;
+
+    case SENSOR_ID_RV:
+        _rota_sensor.begin(50, 0);
+        break;
+
+    case SENSOR_ID_BSEC:
+        _bsec_sensor.begin(50, 0);
+    
+    default:
+        break;
+    }
 }
 // Set the callback struct
 struct ns_sd_cb sensor_data_callbacks = {
@@ -60,7 +98,7 @@ void send_sensor_data(struct k_work *item) {
         CONTAINER_OF(item, struct work_q_data, work);
     
     // Send over BLE
-    sensor_send_data_notify(data->buf);
+    sensor_send_data_notify(data->buf, sizeof(data->buf));
 }
 
 
@@ -82,7 +120,7 @@ void process_sensor_data(void) {
             } else {
                 _sData = _gyro_sensor.getData();
             }
-            
+
             bytecpy(&buf[byte_counter], &_sData, sizeof(_sData));
             byte_counter += sizeof(_sData);
 
@@ -215,6 +253,7 @@ int main(void) {
 
     // Initialize BHI260
     bhy2.begin();
+    
     // Work queue setup
     k_work_queue_init(&sensor_work_q);
     k_work_queue_start(&sensor_work_q, sensor_work_q_stack_area, 
