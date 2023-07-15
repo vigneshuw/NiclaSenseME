@@ -15,7 +15,7 @@ Sensor Configuration
 #define STACK_SIZE              1024
 #define PRIORITY                7
 #define CHECK_INTERVAL          10
-#define BLE_DATA_LEN            201
+#define BLE_DATA_LEN            202
 
 
 // Sensor Variables
@@ -28,7 +28,8 @@ SensorBSEC                      _bsec_sensor(SENSOR_ID_BSEC);
 // Data update status
 bool update_state = false;
 uint8_t active_sensor = 0;
-uint8_t byte_counter = 1;
+uint8_t data_preamble = 2;
+uint8_t byte_counter = data_preamble;
 uint8_t buf[BLE_DATA_LEN];
 
 // Work Queue initialization
@@ -125,9 +126,10 @@ void process_sensor_data(void) {
             byte_counter += sizeof(_sData);
 
             // Check if we need to send data
-            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+            if((byte_counter + sizeof(_sData) - data_preamble) > sizeof(buf) - data_preamble) {
                 // Update length as first variable
-                buf[0] = byte_counter - 1;
+                buf[0] = byte_counter - data_preamble;
+                buf[1] = active_sensor;
 
                 // Send data over BLE
                 // Complete pending work
@@ -135,7 +137,7 @@ void process_sensor_data(void) {
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
-                byte_counter = 1;
+                byte_counter = data_preamble;
 
                 // Add the item to work queue
                 k_work_submit(&sensor_work_q_data.work);
@@ -152,9 +154,10 @@ void process_sensor_data(void) {
             byte_counter += sizeof(_sData);
 
             // Check if we need to send data
-            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+            if((byte_counter + sizeof(_sData) - data_preamble) > sizeof(buf) - data_preamble) {
                 // Update length as first variable
-                buf[0] = byte_counter - 1;
+                buf[0] = byte_counter - data_preamble;
+                buf[1] = active_sensor;
 
                 // Send data over BLE
                 // Complete pending work
@@ -162,7 +165,7 @@ void process_sensor_data(void) {
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
-                byte_counter = 1;
+                byte_counter = data_preamble;
 
                 // Add the item to work queue
                 k_work_submit(&sensor_work_q_data.work);
@@ -180,9 +183,10 @@ void process_sensor_data(void) {
             byte_counter += sizeof(_sData);
 
             // Check if we need to send data
-            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+            if((byte_counter + sizeof(_sData) - data_preamble) > sizeof(buf) - data_preamble) {
                 // Update length as first variable
-                buf[0] = byte_counter - 1;
+                buf[0] = byte_counter - data_preamble;
+                buf[1] = active_sensor;
 
                 // Send data over BLE
                 // Complete pending work
@@ -190,7 +194,7 @@ void process_sensor_data(void) {
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
-                byte_counter = 1;
+                byte_counter = data_preamble;
 
                 // Add the item to work queue
                 k_work_submit(&sensor_work_q_data.work);
@@ -209,9 +213,10 @@ void process_sensor_data(void) {
             byte_counter += sizeof(_sData);
 
             // Check if we need to send data
-            if((byte_counter + sizeof(_sData) - 1) > sizeof(buf) - 1) {
+            if((byte_counter + sizeof(_sData) - data_preamble) > sizeof(buf) - data_preamble) {
                 // Update length as first variable
-                buf[0] = byte_counter - 1;
+                buf[0] = byte_counter - data_preamble;
+                buf[1] = active_sensor;
 
                 // Send data over BLE
                 // Complete pending work
@@ -219,7 +224,7 @@ void process_sensor_data(void) {
 
                 //  Copy the new data 
                 bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
-                byte_counter = 1;
+                byte_counter = data_preamble;
 
                 // Add the item to work queue
                 k_work_submit(&sensor_work_q_data.work);
