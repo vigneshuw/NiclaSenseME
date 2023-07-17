@@ -59,6 +59,12 @@ void select_active_sensor(uint8_t sensor_id) {
         _orin_sensor.begin(0, 0);
         _rota_sensor.begin(0, 0);
         _bsec_sensor.begin(0, 0);
+
+        // Reset some variables
+        byte_counter = data_preamble;
+
+        // Clear the work queue
+        k_work_cancel(&sensor_work_q_data.work);
         break;
 
     case SENSOR_ID_ACC_PASS:
@@ -140,7 +146,7 @@ void process_sensor_data(void) {
                 byte_counter = data_preamble;
 
                 // Add the item to work queue
-                k_work_submit(&sensor_work_q_data.work);
+                k_work_submit_to_queue(&sensor_work_q, &sensor_work_q_data.work);
             }
         }
         break;
@@ -168,7 +174,7 @@ void process_sensor_data(void) {
                 byte_counter = data_preamble;
 
                 // Add the item to work queue
-                k_work_submit(&sensor_work_q_data.work);
+                k_work_submit_to_queue(&sensor_work_q, &sensor_work_q_data.work);
             }
 
         }
@@ -197,7 +203,7 @@ void process_sensor_data(void) {
                 byte_counter = data_preamble;
 
                 // Add the item to work queue
-                k_work_submit(&sensor_work_q_data.work);
+                k_work_submit_to_queue(&sensor_work_q, &sensor_work_q_data.work);
             }
 
 
@@ -227,7 +233,7 @@ void process_sensor_data(void) {
                 byte_counter = data_preamble;
 
                 // Add the item to work queue
-                k_work_submit(&sensor_work_q_data.work);
+                k_work_submit_to_queue(&sensor_work_q, &sensor_work_q_data.work);
             }
         }
         break;
