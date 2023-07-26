@@ -32,14 +32,19 @@ static ssize_t sensor_select_ble_callback(struct bt_conn *conn,
         LOG_DBG("Sensor Select Write: Incorrect data offset\n");
         return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
     }
-    if(len > 1) {
+    if(len > 3) {
         LOG_DBG("Sensor Select Write: Incorrect data length\n");
         return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
     }
 
+    // Byte Copy the sampling rate
+    uint8_t *ble_data = (uint8_t *)buf;
+    uint16_t sampling_rate;
+    bytecpy(&sampling_rate, &ble_data[1], 2);
+
     if(bt_cb_funcs.sensor_select_cb) {
         // Call the appropriate function
-        bt_cb_funcs.sensor_select_cb(((uint8_t *)buf)[0]);
+        bt_cb_funcs.sensor_select_cb(ble_data[0], sampling_rate);
     }
     return len;
 

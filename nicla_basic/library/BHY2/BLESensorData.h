@@ -31,7 +31,7 @@ BLE Services and Characteristics
 Callbacks for BLE
 */
 /** @brief  Callback for sensor selection for datastream */
-typedef void (*sensor_select_t)(uint8_t sensor_id);
+typedef void (*sensor_select_t)(uint8_t sensor_id, uint16_t sampling_rate);
 
 
 // Callback struct

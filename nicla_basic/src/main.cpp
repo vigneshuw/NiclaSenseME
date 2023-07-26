@@ -46,9 +46,9 @@ struct k_work_sync sensor_work_q_sync;
 BLE Setup for Sensor Data Transfer
 */
 /** @brief  Set the active sensor */
-void select_active_sensor(uint8_t sensor_id) {
+void select_active_sensor(uint8_t sensor_id, uint16_t sampling_rate) {
     active_sensor = sensor_id;
-    LOG_DBG("Sensor Selectiom: Received Sensor ID %u", sensor_id);
+    LOG_DBG("Sensor Selectiom: Received Sensor ID %u, with the sampling rate of %u", sensor_id, sampling_rate);
 
     switch (sensor_id)
     {
@@ -68,27 +68,27 @@ void select_active_sensor(uint8_t sensor_id) {
         break;
 
     case SENSOR_ID_ACC_PASS:
-        _accl_sensor.begin(50, 0);
+        _accl_sensor.begin(sampling_rate, 0);
         // 8g
         _accl_sensor.setRange(8);
         break;
 
     case SENSOR_ID_GYRO_PASS:
-        _gyro_sensor.begin(50, 0);
+        _gyro_sensor.begin(sampling_rate, 0);
         // 250 degree/s
         _gyro_sensor.setRange(250);
         break;
 
     case SENSOR_ID_ORI:
-        _orin_sensor.begin(50, 0);
+        _orin_sensor.begin(sampling_rate, 0);
         break;
 
     case SENSOR_ID_RV:
-        _rota_sensor.begin(50, 0);
+        _rota_sensor.begin(sampling_rate, 0);
         break;
 
     case SENSOR_ID_BSEC:
-        _bsec_sensor.begin(50, 0);
+        _bsec_sensor.begin(sampling_rate, 0);
     
     default:
         break;
@@ -274,7 +274,7 @@ int main(void) {
     while (1) {
 
         // Keep updating the sensor data
-        update_state = bhy2.update(CHECK_INTERVAL);
+        update_state = bhy2.update(1);
         
         // Process the sensor data
         if(update_state) {
