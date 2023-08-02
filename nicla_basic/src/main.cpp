@@ -89,6 +89,14 @@ void select_active_sensor(uint8_t sensor_id, uint16_t sampling_rate) {
 
     case SENSOR_ID_BSEC:
         _bsec_sensor.begin(sampling_rate, 0);
+        break;
+
+    case 255:
+        // All the IMU sensors
+        _accl_sensor.begin(sampling_rate, 0);
+        _gyro_sensor.begin(sampling_rate, 0);
+        _orin_sensor.begin(sampling_rate, 0);
+        break;
     
     default:
         break;
@@ -220,6 +228,44 @@ void process_sensor_data(void) {
 
             // Check if we need to send data
             if((byte_counter + sizeof(_sData) - data_preamble) > sizeof(buf) - data_preamble) {
+                // Update length as first variable
+                buf[0] = byte_counter - data_preamble;
+                buf[1] = active_sensor;
+
+                // Send data over BLE
+                // Complete pending work
+                bool work_state = k_work_flush(&sensor_work_q_data.work, &sensor_work_q_sync);
+
+                //  Copy the new data 
+                bytecpy(sensor_work_q_data.buf, buf, sizeof(buf));
+                byte_counter = data_preamble;
+
+                // Add the item to work queue
+                k_work_submit_to_queue(&sensor_work_q, &sensor_work_q_data.work);
+            }
+        }
+        break;
+
+    case 255:
+        {   
+            // Get the data items
+            DataXYZ _accData;
+            DataXYZ _gyroData;
+            DataOrientation _orinData;
+            // Update the buffer
+            _accData = _accl_sensor.getData();
+            bytecpy(&buf[byte_counter], &_accData, sizeof(_accData));
+            byte_counter += sizeof(_accData);
+            _gyroData = _gyro_sensor.getData();
+            bytecpy(&buf[byte_counter], &_gyroData, sizeof(_gyroData));
+            byte_counter += sizeof(_gyroData);
+            _orinData = _orin_sensor.getData();
+            bytecpy(&buf[byte_counter], &_orinData, sizeof(_orinData));
+            byte_counter += sizeof(_orinData);
+
+            // Check if we need to send data
+            uint16_t data_size = sizeof(_accData) + sizeof(_gyroData) + sizeof(_orinData);
+            if((byte_counter + data_size - data_preamble) > sizeof(buf) - data_preamble) {
                 // Update length as first variable
                 buf[0] = byte_counter - data_preamble;
                 buf[1] = active_sensor;
