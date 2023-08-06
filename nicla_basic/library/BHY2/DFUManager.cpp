@@ -82,8 +82,6 @@ void DFUManager::processPacket(DFUType dfuType, const uint8_t *data, uint16_t le
     // Update len to reflect only the data
     len = len - 5;
 
-    LOG_DBG("Packet index -> %u\n", packet->index);
-
     int res;
 
     // Delete the old file
@@ -198,6 +196,11 @@ int DFUManager::writeFirmwareToFlash(DFUType dfuType, DFULevel dfuLevel) {
             LOG_ERR("Boot upgrade request has failed\n");
             return rc;
         }
+
+        // Reset the System
+        k_msleep(2000);
+        NVIC_SystemReset();
+
     } else {
         LOG_WRN("DFU_EXTERNAL is not implemented!\n");
         return -2;

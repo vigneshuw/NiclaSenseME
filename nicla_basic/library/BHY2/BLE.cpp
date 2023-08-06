@@ -85,10 +85,10 @@ static ssize_t dfu_firmware_update_enable(struct bt_conn *conn,
         uint8_t install_type = ((uint8_t *)buf)[1];
         if(val == 0x00) {
             // BHY2 Firmware update
-            bt_cb_funcs.firmware_update_cb(DFU_EXTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
+            bt_cb_funcs.firmware_update_cb(DFU_INTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
         } else if (val == 0xFF) {
             // nRF52 Firmware update
-            bt_cb_funcs.firmware_update_cb(DFU_INTERNAL, (install_type == 0x01) ? DFU_TEST: DFU_PERMANENT);
+            bt_cb_funcs.firmware_update_cb(DFU_EXTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
         } else {
             LOG_WRN("Invalid FW update specifier\n");
         }

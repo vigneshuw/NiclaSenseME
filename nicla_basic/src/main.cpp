@@ -1,5 +1,8 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
+#include <zephyr/pm/pm.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/policy.h>
 
 #include "NiclaSystem.hpp"
 #include "BHY2.h"
@@ -41,6 +44,8 @@ struct work_q_data {
 } sensor_work_q_data;
 struct k_work_sync sensor_work_q_sync;
 
+struct pm_state_info pms {PM_STATE_SOFT_OFF, 0, 0};
+
 
 /*
 BLE Setup for Sensor Data Transfer
@@ -65,6 +70,9 @@ void select_active_sensor(uint8_t sensor_id, uint16_t sampling_rate) {
 
         // Clear the work queue
         k_work_cancel(&sensor_work_q_data.work);
+
+        // Go to deep sleep
+        // pm_state_force(0u, &pms);
         break;
 
     case SENSOR_ID_ACC_PASS:
