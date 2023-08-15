@@ -54,6 +54,7 @@ bool BoschSensortec::begin() {
         LOG_DBG("ret = %s; Boot Status: %X\n", get_api_error(ret), stat);
 
     // Host interrupt ctrl
+
     ret = bhy2_get_host_interrupt_ctrl(&stat, &_bhy2);
     if(ret)
         LOG_DBG("ret = %s; Host interrupt ctrl register: %X\n", get_api_error(ret), stat);
@@ -89,6 +90,35 @@ bool BoschSensortec::begin() {
 
 }
 
+uint8_t BoschSensortec::get_boot_status() {
+    uint8_t boot_status;
+
+    int8_t rc = bhy2_get_boot_status(&boot_status, &_bhy2);
+    print_api_error(rc);
+
+    return boot_status;
+}
+
+int8_t BoschSensortec::erase_bhy2_flash(uint32_t start_addr, uint32_t end_addr) {
+    int8_t rslt = bhy2_erase_flash(start_addr, end_addr, &_bhy2);
+    return rslt;
+}
+
+int8_t BoschSensortec::update_host_interrupt_ctrl(uint8_t hintr_ctrl) {
+    int8_t rslt = bhy2_set_host_interrupt_ctrl(hintr_ctrl, &_bhy2);
+    return rslt;
+}
+
+int8_t BoschSensortec::update_host_interface_ctrl(uint8_t hif_ctrl) {
+    int8_t rslt = bhy2_set_host_intf_ctrl(hif_ctrl, &_bhy2);
+    return rslt;
+}
+
+int8_t BoschSensortec::soft_reset_bhy2_device() {
+    int8_t rslt = bhy2_soft_reset(&_bhy2);
+    return rslt;
+}
+
 void BoschSensortec::printSensors() {
 
     bool presentBuf[256];
@@ -103,6 +133,28 @@ void BoschSensortec::printSensors() {
     for (int i = 0; i < (int)sizeof(presentBuf); i++) {
         LOG_DBG("%d - %s\n", i, get_sensor_name(i));
     }
+}
+
+void BoschSensortec::print_api_error(int8_t rslt) {
+    if(rslt != BHY2_OK) {
+        LOG_DBG("%s", get_api_error(rslt));
+    }
+}
+
+uint8_t BoschSensortec::get_bhy2_error_value() {
+    uint8_t bhy2_error;
+    int8_t rslt = bhy2_get_error_value(&bhy2_error, &_bhy2);
+    print_api_error(rslt);
+
+    return bhy2_error;
+}
+
+uint16_t BoschSensortec::get_bhy2_kernel_version() {
+    uint16_t kernel_version;
+    int8_t rslt = bhy2_get_kernel_version(&kernel_version, &_bhy2);
+    print_api_error(rslt);
+
+    return kernel_version;
 }
 
 bool BoschSensortec::hasSensor(uint8_t sensorID) {
@@ -197,6 +249,13 @@ bool BoschSensortec::update() {
     }
 
     return false;
+}
+
+int8_t BoschSensortec::upload_firmware_to_flash_partly(uint8_t *bhy2_firmware_image, uint32_t offset, uint32_t packet_len) {
+
+    int8_t rc = bhy2_upload_firmware_to_flash_partly(bhy2_firmware_image, offset, packet_len, &_bhy2);
+    return rc;
+
 }
 
 #ifdef __cplusplus

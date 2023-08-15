@@ -41,6 +41,13 @@ BLE Services and Characteristics
 #define BT_UUID_SEN_CONFIG_VAL \
     BT_UUID_128_ENCODE(0x34c2e3b9, 0x34ab, 0x11eb, 0xadc1, 0x0242ac120002)
 
+// Service-3 -> Power Management
+#define BT_UUID_PM_SERV_VAL \
+    BT_UUID_128_ENCODE(0x34c2e3c8, 0x34aa, 0x11eb, 0xadc1, 0x0242ac120002)
+// Deep Sleep Enable
+#define BT_UUID_PM_DSLEEP_VAL \
+    BT_UUID_128_ENCODE(0x34c2e3c8, 0x34ab, 0x11eb, 0xadc1, 0x0242ac120002)
+
 
 #define BT_UUID_DFU_SERV                BT_UUID_DECLARE_128(BT_UUID_DFU_SERV_VAL)
 #define BT_UUID_DFU_INTERNAL            BT_UUID_DECLARE_128(BT_UUID_DFU_INTERNAL_VAL)

@@ -7,6 +7,7 @@
 #include "SPIFLASH/MX25R1635F.hpp"
 
 #define PARTITION_NODE              DT_NODELABEL(lfs1)
+#define BHI_MAX_WRITE_LEN           256
 
 
 /** @brief Type of firmware, nrf52832 or BHI260*/
@@ -82,6 +83,10 @@ class DFUManager{
         // File names
         const char *_dfu_internal_fname = "NRF52_UPDATE.BIN";
         const char *_dfu_external_fname = "BHY_UPDATE.BIN";
+
+        // BHI260 FW Update functions
+        size_t get_update_file_size();
+        int8_t upload_firmware();
 
     private:
         friend class BHY2;
