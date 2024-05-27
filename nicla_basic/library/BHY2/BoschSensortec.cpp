@@ -228,6 +228,14 @@ void BoschSensortec::addLongSensorData(SensorLongDataPacket *sensorData) {
     sensorManager.process(*sensorData);
 }
 
+void BoschSensortec::flushSensorData(uint8_t sensorID) {
+
+    int8_t rc = bhy2_flush_fifo(sensorID, &_bhy2);
+    if(rc)
+        LOG_DBG("[FAIL] Flushing the data for the sensor with id %d has failed with %d\n", sensorID, rc);
+
+}
+
 uint8_t BoschSensortec::acknowledgement() {
     uint8_t ack = _acknowledgement;
     // Reset the acknowledgement

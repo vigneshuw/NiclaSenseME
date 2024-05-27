@@ -115,6 +115,9 @@ class BoschSensortec {
         /** @brief Handle FIFO of data queue for long sensor data */
         void addLongSensorData(SensorLongDataPacket *sensorData);
         
+        /** @brief Flush the data from the virtual sensor on bhy*/
+        void flushSensorData(uint8_t sensorID);
+        
         /** @brief Send firmware to flash in parts*/
         int8_t upload_firmware_to_flash_partly(uint8_t *bhy2_firmware_image, uint32_t offset, uint32_t packet_size);
 

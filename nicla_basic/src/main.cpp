@@ -71,6 +71,13 @@ void select_active_sensor(uint8_t sensor_id, uint16_t sampling_rate) {
         // Clear the work queue
         k_work_cancel(&sensor_work_q_data.work);
 
+        // Clear the buffer
+        sensortec.flushSensorData(SENSOR_ID_ACC_PASS);
+        sensortec.flushSensorData(SENSOR_ID_GYRO_PASS);
+        sensortec.flushSensorData(SENSOR_ID_ORI);
+        sensortec.flushSensorData(SENSOR_ID_RV);
+        sensortec.flushSensorData(SENSOR_ID_BSEC);
+
         // Go to deep sleep
         // pm_state_force(0u, &pms);
         break;
