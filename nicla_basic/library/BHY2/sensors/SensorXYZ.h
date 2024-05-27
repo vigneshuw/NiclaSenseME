@@ -22,6 +22,10 @@ class SensorXYZ: public SensorClass {
             return _data.z;
         }
 
+        DataXYZ getData() {
+            return _data;
+        }
+
         void setData(SensorDataPacket &data) {
             DataParser::parse3Dvector(data, _data);
         }

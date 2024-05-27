@@ -26,7 +26,10 @@ pyocd flash -t nrf52832 ./build/zephyr/zephyr.hex
 pyocd flash -e chip -t nrf52832 ./build/zephyr/merged.hex
 ```
 
-4. 
+4. If device reset is required
+```python
+pyocd reset -t nrf52832
+```
 
 ## Serial output
 

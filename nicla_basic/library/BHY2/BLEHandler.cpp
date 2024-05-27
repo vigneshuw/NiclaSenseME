@@ -6,6 +6,7 @@
 
 LOG_MODULE_REGISTER(MD_BLEHandler, CONFIG_SET_LOG_LEVEL);
 
+
 /*
 BLE Connection Advertising
 */

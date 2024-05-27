@@ -44,6 +44,20 @@ void DataParser::parseBSEC(SensorLongDataPacket &data, DataBSEC &vector) {
 }
 
 
+void DataParser::parseBSECLegacy(SensorLongDataPacket &data, DataBSEC &vector) {
+    vector.comp_t = data.getFloat(0);
+    vector.comp_h = data.getFloat(4);
+    //note that: SENSOR_DATA_FIXED_LENGTH is defined as 10 by default,
+    //so all the fields below are 0 unless it's redefined to 29 and above
+    vector.comp_g = (uint32_t)(data.getFloat(8));
+    vector.iaq = (uint16_t)(data.getFloat(12));
+    vector.iaq_s = (uint16_t)(data.getFloat(16));
+    vector.co2_eq = (uint32_t)data.getFloat(20);
+    vector.b_voc_eq = data.getFloat(24);
+    vector.accuracy = data.getUint8(28);
+}
+
+
 void DataParser::parseData(SensorDataPacket &data, float &value, float scaleFactor, SensorPayload format) {
     uint8_t id = data.sensorId;
     switch (format) {

@@ -6,7 +6,7 @@
 
 LOG_MODULE_REGISTER(MD_BLE, CONFIG_SET_LOG_LEVEL);
 
-static struct ns_cb bt_cb_funcs;
+static struct ns_cb                 bt_cb_funcs;
 
 int callback_init(struct ns_cb *callbacks) {
     if(callbacks) {
@@ -85,10 +85,10 @@ static ssize_t dfu_firmware_update_enable(struct bt_conn *conn,
         uint8_t install_type = ((uint8_t *)buf)[1];
         if(val == 0x00) {
             // BHY2 Firmware update
-            bt_cb_funcs.firmware_update_cb(DFU_EXTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
+            bt_cb_funcs.firmware_update_cb(DFU_INTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
         } else if (val == 0xFF) {
             // nRF52 Firmware update
-            bt_cb_funcs.firmware_update_cb(DFU_INTERNAL, (install_type == 0x01) ? DFU_TEST: DFU_PERMANENT);
+            bt_cb_funcs.firmware_update_cb(DFU_EXTERNAL, (install_type == 0x00) ? DFU_TEST: DFU_PERMANENT);
         } else {
             LOG_WRN("Invalid FW update specifier\n");
         }
@@ -125,7 +125,7 @@ static ssize_t sensor_config_ble_callback(struct bt_conn *conn,
 BLE Service and Characteristics
 */
 // Firmware Service
-BT_GATT_SERVICE_DEFINE(DeviceFirmwareService,
+BT_GATT_SERVICE_DEFINE(deviceFirmwareService,
     BT_GATT_PRIMARY_SERVICE(BT_UUID_DFU_SERV), 
         // Internal Firmware
         BT_GATT_CHARACTERISTIC(BT_UUID_DFU_INTERNAL,
@@ -141,10 +141,11 @@ BT_GATT_SERVICE_DEFINE(DeviceFirmwareService,
                         BT_GATT_PERM_WRITE, NULL, dfu_firmware_update_enable, NULL)
 );
 // Sensor Config Service
-BT_GATT_SERVICE_DEFINE(SensorConfigService,
+BT_GATT_SERVICE_DEFINE(sensorConfigService,
     BT_GATT_PRIMARY_SERVICE(BT_UUID_SEN_SERV),
         // Sensor Configuration
         BT_GATT_CHARACTERISTIC(BT_UUID_SEN_CONFIG, 
                     BT_GATT_CHRC_WRITE, 
                     BT_GATT_PERM_WRITE, NULL, sensor_config_ble_callback, NULL)
 );
+

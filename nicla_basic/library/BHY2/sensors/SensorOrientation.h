@@ -31,6 +31,10 @@ class SensorOrientation : public SensorClass {
             return _data.roll;
         }
 
+        DataOrientation getData() {
+            return _data;
+        }
+
         /** @brief Set the scale factor
          * @param   factor                  The scaling factor value
         */

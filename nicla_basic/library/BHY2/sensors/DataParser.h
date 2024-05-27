@@ -6,21 +6,21 @@
 #include "SensorID.h"
 
 /** @brief XYZ data*/
-struct DataXYZ {
+struct __attribute__ ((packed)) DataXYZ {
     int16_t x;
     int16_t y;
     int16_t z;
 };
 
 /** @brief Orientation data*/
-struct DataOrientation {
+struct __attribute__ ((packed)) DataOrientation {
     float heading;
     float pitch;
     float roll;
 };
 
 /** @brief Quaternion data*/
-struct DataQuaternion {
+struct __attribute__ ((packed)) DataQuaternion {
     float x;
     float y;
     float z;
@@ -29,8 +29,8 @@ struct DataQuaternion {
 };
 
 /** @brief Gas composition data*/
-struct DataBSEC {
-   uint16_t  iaq;          //iaq value for regular use case
+struct __attribute__ ((packed)) DataBSEC {
+    uint16_t  iaq;          //iaq value for regular use case
     uint16_t  iaq_s;       //iaq value for stationary use cases
     float     b_voc_eq;    //breath VOC equivalent (ppm)
     uint32_t  co2_eq;      //CO2 equivalent (ppm) [400,]

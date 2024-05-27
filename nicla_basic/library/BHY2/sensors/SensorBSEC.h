@@ -19,6 +19,10 @@ class SensorBSEC : public SensorClass {
         float comp_h() {return _data.comp_h;}
         uint32_t comp_g() {return _data.comp_g;}
 
+        DataBSEC getData() {
+            return _data;
+        }
+
         void setData(SensorDataPacket &data) {}
 
         void setData(SensorLongDataPacket &data) {

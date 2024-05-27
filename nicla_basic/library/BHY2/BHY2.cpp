@@ -44,8 +44,8 @@ bool BHY2::begin() {
 
 }
 
-void BHY2::update() {
-    sensortec.update();
+bool BHY2::update() {
+    bool update_state = sensortec.update();
 
     // FW transfer status 
     if (dfuManager.isPending()) {
@@ -56,11 +56,16 @@ void BHY2::update() {
 
         LOG_DBG("Firmware transfer complete.");
     }
+
+    return update_state;
 }
 
-void BHY2::update(unsigned long ms) {
-    update();
+bool BHY2::update(unsigned long ms) {
+    bool update_state = update();
     k_msleep(ms);
+
+    return update_state;
+
 }
 
 void BHY2::delay(unsigned long ms) {

@@ -26,15 +26,22 @@ class BHY2 {
         */
         bool begin();
 
-        /** @brief */
-        void update();
+        /** @brief Look for data in FIFO, parse and call all the registered callbacks
+         * 
+         * @retval  true    If the interrupt has occurred and data is present
+         * @retval  false   Otherwise
+        */
+        bool update();
 
-        /** @brief Update and delay using kernel sleep
+        /** @brief  Look for data in FIFO, parse and call all the registered callbacks. Additionally, 
+         *          delay the thread for a set amount of time
          * 
          * @param   ms                  Time in milliseconds
          * 
+         * @retval  true    If the interrupt has occurred and data is present
+         * @retval  false   Otherwise
         */
-        void update(unsigned long ms);
+        bool update(unsigned long ms);
 
         /** @brief Delay for a specified amount of ms 
          * 
