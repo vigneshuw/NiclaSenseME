@@ -21,3 +21,13 @@ The repository contains the firmware written using nRFConnectSDK and Zephyr RTOS
 ## Acknowledgements
 
 The classes and methods were designed to closely resemble the Arduino code for the Nicla Sense ME, ensuring compatibility and repeatability. The Arduino Nicla Sense ME firmware can be found at https://github.com/arduino/nicla-sense-me-fw.
+
+## Contact
+
+If you have any questions, feel free to reach out to the owner of this repository. You can contact me via the following methods:
+
+- **Email:** [vselvaraj@wisc.edu](mailto:vselvaraj@wisc.edu)
+
+For more information, visit the [Arduino Nicla Sense ME repository](https://github.com/arduino/nicla-sense-me-fw).
+
+
